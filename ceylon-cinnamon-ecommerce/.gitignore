@@ -1,0 +1,36 @@
+# Environment files
+.env
+!.env.example
+
+# Vendor directory
+vendor/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Uploads (keep directory structure)
+public/uploads/*
+!public/uploads/.gitkeep
+
+# Cache
+cache/
+*.cache
+
+# Composer
+composer.lock
+
+# PHPUnit
+.phpunit.result.cache
+phpunit.xml
+!phpunit.xml.dist

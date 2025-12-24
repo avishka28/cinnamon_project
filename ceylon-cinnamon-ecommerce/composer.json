@@ -1,0 +1,33 @@
+{
+    "name": "ceylon-cinnamon/ecommerce",
+    "description": "Ceylon Cinnamon E-commerce Website",
+    "type": "project",
+    "license": "proprietary",
+    "require": {
+        "php": ">=8.0",
+        "ext-pdo": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.6",
+        "giorgiosironi/eris": "^0.14"
+    },
+    "autoload": {
+        "classmap": [
+            "config/",
+            "controllers/",
+            "models/",
+            "includes/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "test-unit": "phpunit --testsuite Unit",
+        "test-property": "phpunit --testsuite Property"
+    }
+}
