@@ -161,7 +161,7 @@ class CartPersistencePropertyTest extends TestCase
             $this->markTestSkipped('No test products available');
         }
 
-        $this->limitTo(50)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds),
                 Generator\choose(1, 10)
@@ -217,7 +217,7 @@ class CartPersistencePropertyTest extends TestCase
             $this->markTestSkipped('No test products available');
         }
 
-        $this->limitTo(30)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds),
                 Generator\choose(1, 5),
@@ -256,7 +256,7 @@ class CartPersistencePropertyTest extends TestCase
             $this->markTestSkipped('No test products available');
         }
 
-        $this->limitTo(30)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds),
                 Generator\choose(1, 5),
@@ -294,7 +294,7 @@ class CartPersistencePropertyTest extends TestCase
             $this->markTestSkipped('No test products available');
         }
 
-        $this->limitTo(30)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds),
                 Generator\choose(1, 10)

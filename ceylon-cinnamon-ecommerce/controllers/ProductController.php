@@ -11,6 +11,9 @@
  * - 1.5: Organic filtering
  * - 1.6: Product detail page with all information
  * - 1.7: Customer reviews and ratings
+ * - 11.1: Include appropriate meta tags and Open Graph data
+ * - 11.2: Include JSON-LD structured data for products
+ * - 13.4: Show wholesale pricing for wholesale customers
  */
 
 declare(strict_types=1);
@@ -19,17 +22,35 @@ class ProductController extends Controller
 {
     private Product $productModel;
     private Category $categoryModel;
+    private User $userModel;
+    private WholesalePriceTier $priceTierModel;
 
     public function __construct()
     {
         parent::__construct();
         $this->productModel = new Product();
         $this->categoryModel = new Category();
+        $this->userModel = new User();
+        $this->priceTierModel = new WholesalePriceTier();
+    }
+
+    /**
+     * Check if current user is a wholesale customer
+     * Requirement 13.4: Wholesale customer identification
+     * 
+     * @return bool True if user is wholesale customer
+     */
+    private function isWholesaleCustomer(): bool
+    {
+        if (!isset($_SESSION['user_id'])) {
+            return false;
+        }
+        return $this->userModel->isWholesale((int) $_SESSION['user_id']);
     }
 
     /**
      * Display product listing with filters and pagination
-     * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5
+     * Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 11.1, 13.4
      */
     public function index(): void
     {
@@ -41,13 +62,27 @@ class ProductController extends Controller
         $limit = ITEMS_PER_PAGE;
         $offset = ($page - 1) * $limit;
 
-        // Get filtered products
-        $result = $this->productModel->getFiltered($filters, $limit, $offset);
+        // Check if user is wholesale customer (Requirement 13.4)
+        $isWholesale = $this->isWholesaleCustomer();
+
+        // Get filtered products with wholesale pricing if applicable
+        if ($isWholesale) {
+            $result = $this->productModel->getProductsWithPricing(true, $filters, $limit, $offset);
+        } else {
+            $result = $this->productModel->getFiltered($filters, $limit, $offset);
+        }
 
         // Get filter options for sidebar
         $categories = $this->categoryModel->getTree();
         $origins = $this->productModel->getOrigins();
         $priceRange = $this->productModel->getPriceRange();
+
+        // Configure SEO (Requirement 11.1)
+        $seo = new SeoHelper();
+        $seo->setTitle('Our Products - ' . APP_NAME)
+            ->setDescription('Browse our collection of premium Ceylon cinnamon products including cinnamon sticks, powder, oil, and more.')
+            ->setCanonicalUrl(APP_URL . '/products')
+            ->setKeywords('Ceylon cinnamon products, cinnamon sticks, cinnamon powder, cinnamon oil, organic cinnamon');
 
         $this->view('pages/products', [
             'title' => 'Our Products - Ceylon Cinnamon',
@@ -58,7 +93,9 @@ class ProductController extends Controller
             'filters' => $filters,
             'categories' => $categories,
             'origins' => $origins,
-            'priceRange' => $priceRange
+            'priceRange' => $priceRange,
+            'seo' => $seo,
+            'isWholesale' => $isWholesale
         ]);
     }
 
@@ -66,6 +103,8 @@ class ProductController extends Controller
     /**
      * Display products by category
      * Requirement 1.2: Category filtering
+     * Requirement 11.1: SEO meta tags
+     * Requirement 13.4: Wholesale pricing
      * 
      * @param string $slug Category slug
      */
@@ -92,14 +131,30 @@ class ProductController extends Controller
         $limit = ITEMS_PER_PAGE;
         $offset = ($page - 1) * $limit;
 
-        // Get filtered products
-        $result = $this->productModel->getFiltered($filters, $limit, $offset);
+        // Check if user is wholesale customer (Requirement 13.4)
+        $isWholesale = $this->isWholesaleCustomer();
+
+        // Get filtered products with wholesale pricing if applicable
+        if ($isWholesale) {
+            $result = $this->productModel->getProductsWithPricing(true, $filters, $limit, $offset);
+        } else {
+            $result = $this->productModel->getFiltered($filters, $limit, $offset);
+        }
 
         // Get filter options
         $categories = $this->categoryModel->getTree();
         $origins = $this->productModel->getOrigins();
         $priceRange = $this->productModel->getPriceRange();
         $breadcrumb = $this->categoryModel->getBreadcrumb((int) $category['id']);
+
+        // Configure SEO (Requirement 11.1)
+        $seo = new SeoHelper();
+        $seo->configureForCategory($category);
+        
+        // Add breadcrumb structured data
+        if (!empty($breadcrumb)) {
+            $seo->addStructuredData($seo->buildBreadcrumbStructuredData($breadcrumb));
+        }
 
         $this->view('pages/products', [
             'title' => $category['name'] . ' - Ceylon Cinnamon',
@@ -112,13 +167,15 @@ class ProductController extends Controller
             'filters' => $filters,
             'categories' => $categories,
             'origins' => $origins,
-            'priceRange' => $priceRange
+            'priceRange' => $priceRange,
+            'seo' => $seo,
+            'isWholesale' => $isWholesale
         ]);
     }
 
     /**
      * Display single product detail page
-     * Requirements: 1.6, 1.7
+     * Requirements: 1.6, 1.7, 11.1, 11.2, 13.4
      * 
      * @param string $slug Product slug
      */
@@ -136,11 +193,36 @@ class ProductController extends Controller
         // Get full product details including images and reviews
         $product = $this->productModel->getFullDetails((int) $product['id']);
 
+        // Check if user is wholesale customer (Requirement 13.4)
+        $isWholesale = $this->isWholesaleCustomer();
+
+        // Add wholesale pricing information if applicable
+        if ($isWholesale) {
+            $priceInfo = $this->productModel->getEffectivePrice((int) $product['id'], true, 1);
+            $product['wholesale_price'] = $priceInfo['effective_price'];
+            $product['is_wholesale_price'] = $priceInfo['is_wholesale_price'];
+            $product['savings'] = $priceInfo['savings'];
+            $product['savings_percentage'] = $priceInfo['savings_percentage'];
+            
+            // Get all price tiers for display
+            $product['price_tiers'] = $this->priceTierModel->getTierSummary((int) $product['id']);
+            $product['min_wholesale_qty'] = $this->priceTierModel->getMinimumQuantity((int) $product['id']);
+        }
+
         // Get related products
         $relatedProducts = $this->productModel->getRelated((int) $product['id']);
 
         // Get category breadcrumb
         $breadcrumb = $this->categoryModel->getBreadcrumb((int) $product['category_id']);
+
+        // Configure SEO with meta tags and structured data (Requirements 11.1, 11.2)
+        $seo = new SeoHelper();
+        $seo->configureForProduct($product);
+        
+        // Add breadcrumb structured data
+        if (!empty($breadcrumb)) {
+            $seo->addStructuredData($seo->buildBreadcrumbStructuredData($breadcrumb));
+        }
 
         $this->view('pages/product_detail', [
             'title' => $product['name'] . ' - Ceylon Cinnamon',
@@ -148,7 +230,9 @@ class ProductController extends Controller
             'relatedProducts' => $relatedProducts,
             'breadcrumb' => $breadcrumb,
             'metaTitle' => $product['meta_title'] ?? $product['name'],
-            'metaDescription' => $product['meta_description'] ?? $product['short_description']
+            'metaDescription' => $product['meta_description'] ?? $product['short_description'],
+            'seo' => $seo,
+            'isWholesale' => $isWholesale
         ]);
     }
 

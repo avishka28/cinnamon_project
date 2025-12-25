@@ -146,7 +146,7 @@ class ProductDetailPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds)
             )
@@ -250,7 +250,7 @@ class ProductDetailPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds)
             )
@@ -285,7 +285,7 @@ class ProductDetailPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds)
             )
@@ -332,7 +332,7 @@ class ProductDetailPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds)
             )

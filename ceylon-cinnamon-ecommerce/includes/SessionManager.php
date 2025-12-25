@@ -433,6 +433,40 @@ class SessionManager
     }
 
     /**
+     * Set a flash message (alias for flash)
+     * 
+     * @param string $key Flash key
+     * @param mixed $value Flash value
+     */
+    public function setFlash(string $key, mixed $value): void
+    {
+        $this->flash($key, $value);
+    }
+
+    /**
+     * Get current user data
+     * 
+     * @return array|null User data or null if not logged in
+     */
+    public function getUser(): ?array
+    {
+        $this->ensureStarted();
+        
+        if (!$this->isLoggedIn()) {
+            return null;
+        }
+        
+        return [
+            'id' => $_SESSION['user_id'] ?? null,
+            'email' => $_SESSION['user_email'] ?? null,
+            'role' => $_SESSION['user_role'] ?? null,
+            'first_name' => explode(' ', $_SESSION['user_name'] ?? '')[0] ?? '',
+            'last_name' => explode(' ', $_SESSION['user_name'] ?? '')[1] ?? '',
+            'name' => $_SESSION['user_name'] ?? ''
+        ];
+    }
+
+    /**
      * Get and remove a flash message
      * 
      * @param string $key Flash key

@@ -466,7 +466,7 @@ class Product extends Model
         $required = ['sku', 'name', 'price', 'category_id'];
         
         foreach ($required as $field) {
-            if (empty($data[$field]) && $data[$field] !== 0) {
+            if (!isset($data[$field]) || (empty($data[$field]) && $data[$field] !== 0)) {
                 throw new InvalidArgumentException("Field '{$field}' is required");
             }
         }
@@ -536,5 +536,97 @@ class Product extends Model
     public function search(string $keyword, int $limit = 20): array
     {
         return $this->getFiltered(['search' => $keyword], $limit)['products'];
+    }
+
+    /**
+     * Get effective price for a product based on user type and quantity
+     * Requirement 13.4: Show wholesale pricing for wholesale customers
+     * 
+     * @param int $productId Product ID
+     * @param bool $isWholesale Whether user is a wholesale customer
+     * @param int $quantity Order quantity (for wholesale tier calculation)
+     * @return array Price information with retail_price, effective_price, and is_wholesale_price flag
+     */
+    public function getEffectivePrice(int $productId, bool $isWholesale = false, int $quantity = 1): array
+    {
+        $product = $this->find($productId);
+        if (!$product) {
+            return [
+                'retail_price' => 0,
+                'effective_price' => 0,
+                'is_wholesale_price' => false,
+                'wholesale_tier' => null
+            ];
+        }
+
+        $retailPrice = (float) ($product['sale_price'] ?? $product['price']);
+        $effectivePrice = $retailPrice;
+        $isWholesalePrice = false;
+        $wholesaleTier = null;
+
+        if ($isWholesale) {
+            $priceTierModel = new WholesalePriceTier();
+            $wholesalePrice = $priceTierModel->getWholesalePrice($productId, $quantity);
+            
+            if ($wholesalePrice !== null && $wholesalePrice < $retailPrice) {
+                $effectivePrice = $wholesalePrice;
+                $isWholesalePrice = true;
+                
+                // Get the tier info
+                $tiers = $priceTierModel->getProductTiers($productId);
+                foreach ($tiers as $tier) {
+                    if ($tier['min_quantity'] <= $quantity && 
+                        ($tier['max_quantity'] === null || $tier['max_quantity'] >= $quantity)) {
+                        $wholesaleTier = $tier;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return [
+            'retail_price' => $retailPrice,
+            'effective_price' => $effectivePrice,
+            'is_wholesale_price' => $isWholesalePrice,
+            'wholesale_tier' => $wholesaleTier,
+            'savings' => $retailPrice - $effectivePrice,
+            'savings_percentage' => $retailPrice > 0 ? round((($retailPrice - $effectivePrice) / $retailPrice) * 100, 1) : 0
+        ];
+    }
+
+    /**
+     * Get products with wholesale pricing information
+     * Requirement 13.5: Wholesale-specific product catalogs
+     * 
+     * @param bool $isWholesale Whether user is a wholesale customer
+     * @param array $filters Filter options
+     * @param int $limit Number of products per page
+     * @param int $offset Pagination offset
+     * @return array Products with pricing info
+     */
+    public function getProductsWithPricing(bool $isWholesale, array $filters = [], int $limit = ITEMS_PER_PAGE, int $offset = 0): array
+    {
+        $result = $this->getFiltered($filters, $limit, $offset);
+        
+        if ($isWholesale) {
+            $priceTierModel = new WholesalePriceTier();
+            
+            foreach ($result['products'] as &$product) {
+                $priceInfo = $this->getEffectivePrice((int) $product['id'], true, 1);
+                $product['wholesale_price'] = $priceInfo['effective_price'];
+                $product['is_wholesale_price'] = $priceInfo['is_wholesale_price'];
+                $product['savings'] = $priceInfo['savings'];
+                $product['savings_percentage'] = $priceInfo['savings_percentage'];
+                
+                // Get minimum wholesale quantity
+                $minQty = $priceTierModel->getMinimumQuantity((int) $product['id']);
+                $product['min_wholesale_qty'] = $minQty;
+                
+                // Get all price tiers for display
+                $product['price_tiers'] = $priceTierModel->getTierSummary((int) $product['id']);
+            }
+        }
+        
+        return $result;
     }
 }

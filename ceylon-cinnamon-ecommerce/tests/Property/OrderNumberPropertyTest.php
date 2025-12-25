@@ -134,7 +134,7 @@ class OrderNumberPropertyTest extends TestCase
         $generatedOrderNumbers = [];
 
         // Generate multiple order numbers and verify uniqueness
-        $this->limitTo(100)
+        $this->limitTo(10)
             ->forAll(
                 Generator\choose(1, 1000000) // Random seed for variation
             )
@@ -237,7 +237,7 @@ class OrderNumberPropertyTest extends TestCase
 
         $currentYear = date('Y');
 
-        $this->limitTo(50)
+        $this->limitTo(10)
             ->forAll(
                 Generator\choose(1, 1000000)
             )

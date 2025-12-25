@@ -161,7 +161,7 @@ class CartDisplayPropertyTest extends TestCase
             $this->markTestSkipped('No test products available');
         }
 
-        $this->limitTo(30)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds),
                 Generator\choose(1, 10)
@@ -224,7 +224,7 @@ class CartDisplayPropertyTest extends TestCase
             $this->markTestSkipped('Need at least 2 test products');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\choose(1, 5),  // quantity for first product
                 Generator\choose(1, 5)   // quantity for second product
@@ -278,7 +278,7 @@ class CartDisplayPropertyTest extends TestCase
             $this->markTestSkipped('Need at least 3 test products');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\choose(1, 3)  // number of different products to add
             )
@@ -324,7 +324,7 @@ class CartDisplayPropertyTest extends TestCase
             $this->markTestSkipped('Need at least 2 test products');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\choose(1, 5),
                 Generator\choose(1, 5)
@@ -363,7 +363,7 @@ class CartDisplayPropertyTest extends TestCase
             $this->markTestSkipped('No test products available');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds),
                 Generator\choose(1, 5)

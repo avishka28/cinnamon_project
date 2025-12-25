@@ -44,6 +44,22 @@ define('ALLOWED_DOC_TYPES', ['application/pdf']);
 // Pagination
 define('ITEMS_PER_PAGE', (int)($_ENV['ITEMS_PER_PAGE'] ?? 20));
 
+// Base URL path (for subdirectory installations)
+$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+$basePath = dirname($scriptName);
+define('BASE_PATH', ($basePath !== '/' && $basePath !== '\\') ? $basePath : '');
+
+/**
+ * Generate URL with base path
+ * @param string $path The path to append
+ * @return string Full URL path
+ */
+function url(string $path = ''): string
+{
+    $path = '/' . ltrim($path, '/');
+    return BASE_PATH . $path;
+}
+
 // Payment gateways
 define('STRIPE_PUBLIC_KEY', $_ENV['STRIPE_PUBLIC_KEY'] ?? '');
 define('STRIPE_SECRET_KEY', $_ENV['STRIPE_SECRET_KEY'] ?? '');

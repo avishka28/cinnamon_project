@@ -8,6 +8,7 @@
  * - 2.2: Secure login with password verification
  * - 2.5: Support three user roles (customer, admin, content_manager)
  * - 10.7: Strong password hashing algorithms
+ * - 13.4: Wholesale customer identification
  */
 
 declare(strict_types=1);
@@ -64,6 +65,8 @@ class User extends Model
             'last_name' => $data['last_name'],
             'phone' => $data['phone'] ?? null,
             'role' => $data['role'] ?? self::ROLE_CUSTOMER,
+            'is_wholesale' => $data['is_wholesale'] ?? 0,
+            'company_name' => $data['company_name'] ?? null,
             'is_active' => $data['is_active'] ?? 1
         ];
 
@@ -279,5 +282,59 @@ class User extends Model
     public function activate(int $userId): bool
     {
         return $this->update($userId, ['is_active' => 1]);
+    }
+
+    /**
+     * Check if a user is a wholesale customer
+     * Requirement 13.4: Wholesale customer identification
+     * 
+     * @param int $userId User ID
+     * @return bool True if user is a wholesale customer
+     */
+    public function isWholesale(int $userId): bool
+    {
+        $user = $this->find($userId);
+        return $user !== null && (bool) ($user['is_wholesale'] ?? false);
+    }
+
+    /**
+     * Set user as wholesale customer
+     * Requirement 13.4: Wholesale customer management
+     * 
+     * @param int $userId User ID
+     * @param bool $isWholesale Whether user is wholesale
+     * @param string|null $companyName Company name for wholesale customers
+     * @return bool True on success
+     */
+    public function setWholesaleStatus(int $userId, bool $isWholesale, ?string $companyName = null): bool
+    {
+        $data = ['is_wholesale' => $isWholesale ? 1 : 0];
+        if ($companyName !== null) {
+            $data['company_name'] = $companyName;
+        }
+        return $this->update($userId, $data);
+    }
+
+    /**
+     * Get all wholesale customers
+     * 
+     * @param int $limit Maximum number of results
+     * @param int $offset Offset for pagination
+     * @return array List of wholesale customers
+     */
+    public function getWholesaleCustomers(int $limit = 100, int $offset = 0): array
+    {
+        $sql = "SELECT id, email, first_name, last_name, phone, company_name, is_active, created_at, updated_at 
+                FROM {$this->table} 
+                WHERE is_wholesale = 1 
+                ORDER BY created_at DESC 
+                LIMIT :limit OFFSET :offset";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
     }
 }

@@ -30,3 +30,22 @@ spl_autoload_register(function (string $class): void {
 // Load core configuration
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/config/database.php';
+
+// Load translation helper functions
+require_once dirname(__DIR__) . '/includes/TranslationHelper.php';
+
+// Load CSRF helper functions
+require_once dirname(__DIR__) . '/includes/CsrfHelper.php';
+
+// Load sanitization helper functions
+require_once dirname(__DIR__) . '/includes/SanitizationHelper.php';
+
+// Initialize language manager
+// Requirements: 9.1, 9.2, 9.4 - Multi-language support
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$sessionManager = new SessionManager();
+$languageManager = new LanguageManager($sessionManager);
+initializeLanguageManager($languageManager);

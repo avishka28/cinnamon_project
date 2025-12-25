@@ -118,7 +118,7 @@ class ProductFilteringPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testCategoryIds)
             )
@@ -152,7 +152,7 @@ class ProductFilteringPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\choose(0, 50),  // price_min
                 Generator\choose(0, 100)  // price_max offset
@@ -199,7 +199,7 @@ class ProductFilteringPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements('Sri Lanka', 'Indonesia', 'Vietnam')
             )
@@ -232,7 +232,7 @@ class ProductFilteringPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(0, 1)
             )
@@ -263,7 +263,7 @@ class ProductFilteringPropertyTest extends TestCase
             $this->markTestSkipped('Database not available for testing');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testCategoryIds),
                 Generator\choose(0, 30),

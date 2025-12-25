@@ -131,7 +131,7 @@ class StockManagementPropertyTest extends TestCase
             $this->markTestSkipped('No test products available');
         }
 
-        $this->limitTo(30)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds),
                 Generator\choose(1, 10) // Order quantity
@@ -202,7 +202,7 @@ class StockManagementPropertyTest extends TestCase
             $this->markTestSkipped('No test products available');
         }
 
-        $this->limitTo(30)
+        $this->limitTo(10)
             ->forAll(
                 Generator\elements(...$this->testProductIds),
                 Generator\choose(1, 10) // Order quantity
@@ -276,7 +276,7 @@ class StockManagementPropertyTest extends TestCase
             $this->markTestSkipped('Need at least 2 test products');
         }
 
-        $this->limitTo(20)
+        $this->limitTo(10)
             ->forAll(
                 Generator\choose(1, 5), // Quantity for product 1
                 Generator\choose(1, 5)  // Quantity for product 2

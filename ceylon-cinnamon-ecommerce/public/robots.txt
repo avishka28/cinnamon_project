@@ -1,0 +1,33 @@
+# robots.txt for Ceylon Cinnamon E-commerce
+# Requirement 11.3: Generate sitemap.xml and robots.txt files
+
+User-agent: *
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin/
+Disallow: /api/
+Disallow: /includes/
+Disallow: /config/
+Disallow: /vendor/
+
+# Disallow cart and checkout for crawlers
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /register
+Disallow: /logout
+Disallow: /dashboard
+
+# Disallow search results with parameters
+Disallow: /*?*
+
+# Allow specific query parameters for filtering
+Allow: /products?category=
+Allow: /products?page=
+
+# Sitemap location
+Sitemap: https://ceyloncinnamon.com/sitemap.xml
+
+# Crawl delay (optional, for polite crawling)
+Crawl-delay: 1

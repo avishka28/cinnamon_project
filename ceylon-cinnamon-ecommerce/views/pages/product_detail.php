@@ -3,11 +3,23 @@
  * Product Detail Page
  * Requirements: 1.6 (images, videos, descriptions, specifications, certificates, related products)
  * Requirements: 1.7 (customer reviews and ratings)
+ * Requirements: 13.4 (wholesale pricing display)
  */
 include VIEWS_PATH . '/layouts/header.php';
+
+// Check if user is wholesale customer
+$isWholesale = $isWholesale ?? false;
 ?>
 
 <div class="container py-4">
+    <!-- Wholesale Customer Banner -->
+    <?php if ($isWholesale): ?>
+    <div class="alert alert-success mb-4">
+        <i class="bi bi-star-fill me-2"></i>
+        <strong>Wholesale Pricing Active!</strong> You're viewing special wholesale prices.
+    </div>
+    <?php endif; ?>
+
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
@@ -27,7 +39,7 @@ include VIEWS_PATH . '/layouts/header.php';
     </nav>
 
     <div class="row">
-        <!-- Product Images (Requirement 1.6) -->
+        <!-- Product Images (Requirement 1.6, 11.4 - Lazy Loading) -->
         <div class="col-lg-6 mb-4">
             <div class="product-gallery">
                 <!-- Main Image -->
@@ -39,19 +51,23 @@ include VIEWS_PATH . '/layouts/header.php';
                     <img src="<?= htmlspecialchars($imageSrc) ?>" 
                          class="img-fluid rounded" 
                          alt="<?= htmlspecialchars($product['name']) ?>"
-                         id="main-product-image">
+                         id="main-product-image"
+                         loading="eager"
+                         decoding="async">
                 </div>
                 
-                <!-- Thumbnail Gallery -->
+                <!-- Thumbnail Gallery with Lazy Loading -->
                 <?php if (!empty($product['images']) && count($product['images']) > 1): ?>
                     <div class="row g-2">
-                        <?php foreach ($product['images'] as $image): ?>
+                        <?php foreach ($product['images'] as $index => $image): ?>
                             <div class="col-3">
                                 <img src="/uploads/products/<?= htmlspecialchars($image['image_url']) ?>" 
                                      class="img-fluid rounded thumbnail-image" 
                                      alt="<?= htmlspecialchars($image['alt_text'] ?? $product['name']) ?>"
                                      onclick="document.getElementById('main-product-image').src = this.src"
-                                     style="cursor: pointer;">
+                                     style="cursor: pointer;"
+                                     loading="<?= $index < 4 ? 'eager' : 'lazy' ?>"
+                                     decoding="async">
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -68,6 +84,9 @@ include VIEWS_PATH . '/layouts/header.php';
                 <?php endif; ?>
                 <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
                     <span class="badge bg-danger">On Sale</span>
+                <?php endif; ?>
+                <?php if ($isWholesale && !empty($product['is_wholesale_price'])): ?>
+                    <span class="badge bg-info">Wholesale Price</span>
                 <?php endif; ?>
             </div>
 
@@ -95,9 +114,31 @@ include VIEWS_PATH . '/layouts/header.php';
                 </div>
             <?php endif; ?>
 
-            <!-- Price -->
+            <!-- Price Display (Requirement 13.4: Wholesale pricing) -->
             <div class="mb-4">
-                <?php if ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
+                <?php if ($isWholesale && !empty($product['is_wholesale_price'])): ?>
+                    <!-- Wholesale Price Display -->
+                    <div class="wholesale-pricing p-3 bg-light rounded border border-success">
+                        <div class="d-flex align-items-center mb-2">
+                            <span class="text-decoration-line-through text-muted h5 mb-0">
+                                $<?= number_format($product['price'], 2) ?>
+                            </span>
+                            <span class="h3 text-success ms-3 mb-0">
+                                $<?= number_format($product['wholesale_price'], 2) ?>
+                            </span>
+                            <?php if (!empty($product['savings_percentage']) && $product['savings_percentage'] > 0): ?>
+                                <span class="badge bg-success ms-2">
+                                    Save <?= $product['savings_percentage'] ?>%
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                        <small class="text-success">
+                            <i class="bi bi-check-circle me-1"></i>
+                            Wholesale pricing applied
+                        </small>
+                    </div>
+                <?php elseif ($product['sale_price'] && $product['sale_price'] < $product['price']): ?>
+                    <!-- Sale Price Display -->
                     <span class="text-decoration-line-through text-muted h5">
                         $<?= number_format($product['price'], 2) ?>
                     </span>
@@ -108,9 +149,51 @@ include VIEWS_PATH . '/layouts/header.php';
                         Save <?= round((($product['price'] - $product['sale_price']) / $product['price']) * 100) ?>%
                     </span>
                 <?php else: ?>
+                    <!-- Regular Price Display -->
                     <span class="h3">$<?= number_format($product['price'], 2) ?></span>
                 <?php endif; ?>
             </div>
+
+            <!-- Wholesale Price Tiers (Requirement 13.3) -->
+            <?php if ($isWholesale && !empty($product['price_tiers'])): ?>
+                <div class="card mb-4 border-success">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="bi bi-tags me-2"></i>Wholesale Price Tiers</h6>
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Quantity</th>
+                                    <th class="text-end">Price per Unit</th>
+                                    <th class="text-end">Discount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php foreach ($product['price_tiers'] as $tier): ?>
+                                    <tr>
+                                        <td><?= htmlspecialchars($tier['label']) ?></td>
+                                        <td class="text-end fw-bold text-success">$<?= number_format($tier['price'], 2) ?></td>
+                                        <td class="text-end">
+                                            <?php if ($tier['discount']): ?>
+                                                <span class="badge bg-success"><?= $tier['discount'] ?> off</span>
+                                            <?php else: ?>
+                                                -
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                        <?php if (!empty($product['min_wholesale_qty'])): ?>
+                            <small class="text-muted mt-2 d-block">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Minimum wholesale order: <?= (int)$product['min_wholesale_qty'] ?> units
+                            </small>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            <?php endif; ?>
 
             <!-- Short Description -->
             <?php if ($product['short_description']): ?>
@@ -141,8 +224,13 @@ include VIEWS_PATH . '/layouts/header.php';
                             <label class="form-label mb-0">Quantity:</label>
                         </div>
                         <div class="col-auto">
+                            <?php 
+                            $minQty = ($isWholesale && !empty($product['min_wholesale_qty'])) 
+                                ? (int)$product['min_wholesale_qty'] 
+                                : 1;
+                            ?>
                             <input type="number" class="form-control" name="quantity" 
-                                   value="1" min="1" max="<?= $product['stock_quantity'] ?>" style="width: 80px;">
+                                   value="<?= $minQty ?>" min="<?= $minQty ?>" max="<?= $product['stock_quantity'] ?>" style="width: 100px;">
                         </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-primary btn-lg">
@@ -150,6 +238,11 @@ include VIEWS_PATH . '/layouts/header.php';
                             </button>
                         </div>
                     </div>
+                    <?php if ($isWholesale && !empty($product['min_wholesale_qty'])): ?>
+                        <small class="text-muted mt-2 d-block">
+                            Minimum order quantity for wholesale: <?= (int)$product['min_wholesale_qty'] ?> units
+                        </small>
+                    <?php endif; ?>
                 </form>
             <?php endif; ?>
 

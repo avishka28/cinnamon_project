@@ -56,6 +56,14 @@ class Router
     {
         // Remove query string from URI
         $uri = parse_url($uri, PHP_URL_PATH);
+        
+        // Remove base path (for subdirectory installations)
+        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+        $basePath = dirname($scriptName);
+        if ($basePath !== '/' && $basePath !== '\\') {
+            $uri = substr($uri, strlen($basePath)) ?: '/';
+        }
+        
         $uri = rtrim($uri, '/') ?: '/';
 
         foreach ($this->routes as $route) {

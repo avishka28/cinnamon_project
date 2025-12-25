@@ -257,19 +257,52 @@ class Order extends Model
     /**
      * Update order status
      * Requirement 5.4: Order statuses
+     * Requirement 12.2: Send status update email when order status changes
      * 
      * @param int $orderId Order ID
      * @param string $status New status
+     * @param bool $sendNotification Whether to send email notification
      * @return bool Success
      * @throws InvalidArgumentException If status is invalid
      */
-    public function updateStatus(int $orderId, string $status): bool
+    public function updateStatus(int $orderId, string $status, bool $sendNotification = true): bool
     {
         if (!in_array($status, self::STATUSES)) {
             throw new InvalidArgumentException("Invalid order status: {$status}");
         }
 
-        return $this->update($orderId, ['order_status' => $status]);
+        // Get current status for notification
+        $order = $this->find($orderId);
+        $oldStatus = $order ? $order['order_status'] : null;
+
+        $result = $this->update($orderId, ['order_status' => $status]);
+
+        // Send notification if status changed and notifications enabled
+        if ($result && $sendNotification && $oldStatus !== $status) {
+            $this->sendStatusNotification($orderId, $oldStatus, $status);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Send status change notification
+     * Requirement 12.2: Send status update email when order status changes
+     * 
+     * @param int $orderId Order ID
+     * @param string|null $oldStatus Previous status
+     * @param string $newStatus New status
+     * @param array $additionalData Additional data (tracking info, etc.)
+     */
+    private function sendStatusNotification(int $orderId, ?string $oldStatus, string $newStatus, array $additionalData = []): void
+    {
+        try {
+            $notificationService = new OrderNotificationService();
+            $notificationService->notifyStatusChange($orderId, $oldStatus ?? '', $newStatus, $additionalData);
+        } catch (Exception $e) {
+            // Log error but don't fail the status update
+            error_log("Failed to send status notification for order {$orderId}: " . $e->getMessage());
+        }
     }
 
     /**
@@ -290,14 +323,60 @@ class Order extends Model
     }
 
     /**
-     * Cancel an order and restore stock
-     * Requirement 7.6: Restore stock on cancellation
+     * Mark order as shipped with tracking information
+     * Requirement 12.3: Send shipping notification with tracking information
      * 
      * @param int $orderId Order ID
+     * @param string|null $trackingNumber Tracking number
+     * @param string|null $carrier Shipping carrier
+     * @param string|null $trackingUrl Tracking URL
+     * @return bool Success
+     */
+    public function markAsShipped(
+        int $orderId, 
+        ?string $trackingNumber = null, 
+        ?string $carrier = null, 
+        ?string $trackingUrl = null
+    ): bool {
+        $order = $this->find($orderId);
+        
+        if (!$order) {
+            return false;
+        }
+
+        $oldStatus = $order['order_status'];
+        $result = $this->update($orderId, ['order_status' => 'shipped']);
+
+        if ($result) {
+            // Send shipping notification with tracking info
+            try {
+                $notificationService = new OrderNotificationService();
+                $notificationService->sendShippingNotification(
+                    $order['order_number'],
+                    $trackingNumber,
+                    $carrier,
+                    $trackingUrl
+                );
+            } catch (Exception $e) {
+                error_log("Failed to send shipping notification for order {$orderId}: " . $e->getMessage());
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Cancel an order and restore stock
+     * Requirement 7.6: Restore stock on cancellation
+     * Requirement 12.2: Send cancellation notification
+     * 
+     * @param int $orderId Order ID
+     * @param string|null $reason Cancellation reason
+     * @param bool $sendNotification Whether to send email notification
      * @return bool Success
      * @throws Exception On failure
      */
-    public function cancelOrder(int $orderId): bool
+    public function cancelOrder(int $orderId, ?string $reason = null, bool $sendNotification = true): bool
     {
         $order = $this->find($orderId);
         
@@ -327,6 +406,12 @@ class Order extends Model
             $this->update($orderId, ['order_status' => 'cancelled']);
 
             $this->commit();
+
+            // Send cancellation notification (Requirement 12.2)
+            if ($sendNotification) {
+                $this->sendStatusNotification($orderId, $order['order_status'], 'cancelled', ['reason' => $reason]);
+            }
+
             return true;
 
         } catch (Exception $e) {
@@ -395,7 +480,9 @@ class Order extends Model
      */
     public function getByUserId(int $userId, int $limit = 20, int $offset = 0): array
     {
-        $sql = "SELECT * FROM {$this->table} 
+        $sql = "SELECT o.*, 
+                       (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as item_count
+                FROM {$this->table} o
                 WHERE user_id = :user_id 
                 ORDER BY created_at DESC 
                 LIMIT :limit OFFSET :offset";
@@ -407,6 +494,46 @@ class Order extends Model
         $stmt->execute();
         
         return $stmt->fetchAll();
+    }
+
+    /**
+     * Count orders by user ID
+     * 
+     * @param int $userId User ID
+     * @return int Order count
+     */
+    public function countByUserId(int $userId): int
+    {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE user_id = :user_id";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['user_id' => $userId]);
+        return (int) $stmt->fetchColumn();
+    }
+
+    /**
+     * Get user order statistics
+     * 
+     * @param int $userId User ID
+     * @return array Statistics
+     */
+    public function getUserStats(int $userId): array
+    {
+        $sql = "SELECT 
+                    COUNT(*) as total_orders,
+                    SUM(CASE WHEN order_status = 'delivered' THEN 1 ELSE 0 END) as completed_orders,
+                    SUM(CASE WHEN order_status IN ('pending', 'processing', 'shipped') THEN 1 ELSE 0 END) as pending_orders,
+                    COALESCE(SUM(total_amount), 0) as total_spent
+                FROM {$this->table} 
+                WHERE user_id = :user_id";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetch() ?: [
+            'total_orders' => 0,
+            'completed_orders' => 0,
+            'pending_orders' => 0,
+            'total_spent' => 0
+        ];
     }
 
     /**
