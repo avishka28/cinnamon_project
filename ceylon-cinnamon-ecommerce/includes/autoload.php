@@ -31,6 +31,9 @@ spl_autoload_register(function (string $class): void {
 require_once dirname(__DIR__) . '/config/config.php';
 require_once dirname(__DIR__) . '/config/database.php';
 
+// Load middleware interface
+require_once dirname(__DIR__) . '/includes/Middleware.php';
+
 // Load translation helper functions
 require_once dirname(__DIR__) . '/includes/TranslationHelper.php';
 

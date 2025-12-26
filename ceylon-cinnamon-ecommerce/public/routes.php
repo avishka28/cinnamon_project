@@ -67,6 +67,8 @@ $router->get('/admin', [AdminController::class, 'index'], [AdminMiddleware::clas
 $router->get('/admin/login', [AdminController::class, 'showLogin']);
 $router->post('/admin/login', [AdminController::class, 'login']);
 $router->get('/admin/logout', [AdminController::class, 'logout']);
+$router->get('/admin/profile', [AdminController::class, 'profile'], [AdminMiddleware::class]);
+$router->post('/admin/profile', [AdminController::class, 'updateProfile'], [AdminMiddleware::class]);
 
 // Admin product management
 $router->get('/admin/products', [ProductAdminController::class, 'index'], [AdminMiddleware::class]);
@@ -78,6 +80,14 @@ $router->post('/admin/products', [ProductAdminController::class, 'store'], [Admi
 $router->get('/admin/products/{id}/edit', [ProductAdminController::class, 'edit'], [AdminMiddleware::class]);
 $router->post('/admin/products/{id}', [ProductAdminController::class, 'update'], [AdminMiddleware::class]);
 $router->delete('/admin/products/{id}', [ProductAdminController::class, 'destroy'], [AdminMiddleware::class]);
+
+// Admin category management (Requirements: 6.5)
+$router->get('/admin/categories', [CategoryAdminController::class, 'index'], [AdminMiddleware::class]);
+$router->get('/admin/categories/create', [CategoryAdminController::class, 'create'], [AdminMiddleware::class]);
+$router->post('/admin/categories', [CategoryAdminController::class, 'store'], [AdminMiddleware::class]);
+$router->get('/admin/categories/{id}/edit', [CategoryAdminController::class, 'edit'], [AdminMiddleware::class]);
+$router->post('/admin/categories/{id}', [CategoryAdminController::class, 'update'], [AdminMiddleware::class]);
+$router->delete('/admin/categories/{id}', [CategoryAdminController::class, 'destroy'], [AdminMiddleware::class]);
 
 // Admin order management
 $router->get('/admin/orders', [OrderAdminController::class, 'index'], [AdminMiddleware::class]);

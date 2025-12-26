@@ -83,53 +83,59 @@ class LanguageSwitchingPropertyTest extends TestCase
      */
     public function testLanguageSwitchingPreservesPageContext(): void
     {
-        $this->limitTo(20)
-            ->forAll(
-                Generator\elements(['en', 'si']), // Current language
-                Generator\elements(['en', 'si']), // Target language
-                Generator\elements(['/products', '/products/detail', '/cart', '/checkout', '/blog']) // Page paths
-            )
-            ->when(fn($current, $target, $path) => $current !== $target)
-            ->then(function (string $currentLang, string $targetLang, string $pagePath): void {
-                // Set up mock request
-                $_SERVER['REQUEST_URI'] = $pagePath . '?category=1&sort=price';
-                $_GET['lang'] = $targetLang;
-                
-                // Simulate session storage directly
-                $_SESSION['language'] = $currentLang;
-                
-                // Create a mock session manager
-                $sessionManager = $this->createMockSessionManager();
-                
-                // Create language manager
-                $languageManager = new \LanguageManager($sessionManager);
-                
-                // Get switcher URL for target language
-                $switcherUrl = $languageManager->getSwitcherUrl($targetLang);
-                
-                // Property 1: Switcher URL should contain the target language
+        // Use predefined combinations to avoid evaluation ratio issues
+        $testCases = [
+            ['en', 'si', '/products'],
+            ['si', 'en', '/cart'],
+            ['en', 'si', '/checkout'],
+            ['si', 'en', '/blog'],
+            ['en', 'si', '/products/detail'],
+        ];
+        
+        foreach ($testCases as [$currentLang, $targetLang, $pagePath]) {
+            // Set up mock request
+            $_SERVER['REQUEST_URI'] = $pagePath . '?category=1&sort=price';
+            $_GET['lang'] = $targetLang;
+            
+            // Simulate session storage directly
+            $_SESSION['language'] = $currentLang;
+            
+            // Create a mock session manager
+            $sessionManager = $this->createMockSessionManager();
+            
+            // Create language manager
+            $languageManager = new \LanguageManager($sessionManager);
+            
+            // Get switcher URL for target language
+            $switcherUrl = $languageManager->getSwitcherUrl($targetLang);
+            
+            // Property 1: Switcher URL should contain the target language
+            $this->assertStringContainsString(
+                'lang=' . $targetLang,
+                $switcherUrl,
+                'Switcher URL must contain the target language parameter'
+            );
+            
+            // Property 2: Switcher URL should preserve the page path
+            $this->assertStringContainsString(
+                $pagePath,
+                $switcherUrl,
+                'Switcher URL must preserve the page path'
+            );
+            
+            // Property 3: Switcher URL should preserve query parameters (except lang)
+            if (strpos($_SERVER['REQUEST_URI'], '?') !== false) {
                 $this->assertStringContainsString(
-                    'lang=' . $targetLang,
+                    'category=1',
                     $switcherUrl,
-                    'Switcher URL must contain the target language parameter'
+                    'Switcher URL must preserve existing query parameters'
                 );
-                
-                // Property 2: Switcher URL should preserve the page path
-                $this->assertStringContainsString(
-                    $pagePath,
-                    $switcherUrl,
-                    'Switcher URL must preserve the page path'
-                );
-                
-                // Property 3: Switcher URL should preserve query parameters (except lang)
-                if (strpos($_SERVER['REQUEST_URI'], '?') !== false) {
-                    $this->assertStringContainsString(
-                        'category=1',
-                        $switcherUrl,
-                        'Switcher URL must preserve existing query parameters'
-                    );
-                }
-            });
+            }
+            
+            // Clean up for next iteration
+            $_SESSION = [];
+            $_GET = [];
+        }
     }
 
     /**

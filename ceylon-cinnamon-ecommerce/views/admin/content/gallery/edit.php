@@ -9,7 +9,7 @@ include VIEWS_PATH . '/admin/layouts/admin_header.php';
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Edit Gallery Item</h1>
-        <a href="/admin/content/gallery" class="btn btn-outline-secondary">
+        <a href="<?= url('/admin/content/gallery') ?>" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back to Gallery
         </a>
     </div>
@@ -28,7 +28,7 @@ include VIEWS_PATH . '/admin/layouts/admin_header.php';
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-body">
-                    <form method="POST" action="/admin/content/gallery/<?= $item['id'] ?>" enctype="multipart/form-data">
+                    <form method="POST" action="<?= url('/admin/content/gallery/' . $item['id']) ?>" enctype="multipart/form-data">
                         <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                         
                         <div class="mb-3">

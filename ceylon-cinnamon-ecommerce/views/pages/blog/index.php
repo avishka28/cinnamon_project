@@ -20,17 +20,20 @@ include VIEWS_PATH . '/layouts/header.php';
             <?php else: ?>
                 <?php foreach ($posts as $post): ?>
                     <article class="card mb-4 border-0 shadow-sm">
-                        <?php if ($post['featured_image']): ?>
-                            <a href="/blog/<?= htmlspecialchars($post['slug']) ?>">
-                                <img src="<?= htmlspecialchars($post['featured_image']) ?>" 
-                                     class="card-img-top" alt="<?= htmlspecialchars($post['title']) ?>"
-                                     style="height: 250px; object-fit: cover;">
-                            </a>
-                        <?php endif; ?>
+                        <a href="<?= url('/blog/' . htmlspecialchars($post['slug'])) ?>">
+                            <?php 
+                            $blogImage = !empty($post['featured_image']) && file_exists(PUBLIC_PATH . '/' . $post['featured_image']) 
+                                ? url('/' . $post['featured_image']) 
+                                : 'https://placehold.co/800x250/FFF8DC/8B4513?text=' . urlencode($post['title']);
+                            ?>
+                            <img src="<?= $blogImage ?>" 
+                                 class="card-img-top" alt="<?= htmlspecialchars($post['title']) ?>"
+                                 style="height: 250px; object-fit: cover;">
+                        </a>
                         <div class="card-body">
                             <div class="mb-2">
-                                <?php if ($post['category_name']): ?>
-                                    <a href="/blog/category/<?= htmlspecialchars($post['category_slug']) ?>" 
+                                <?php if (!empty($post['category_name'])): ?>
+                                    <a href="<?= url('/blog/category/' . htmlspecialchars($post['category_slug'])) ?>" 
                                        class="badge bg-primary text-decoration-none">
                                         <?= htmlspecialchars($post['category_name']) ?>
                                     </a>
@@ -40,19 +43,19 @@ include VIEWS_PATH . '/layouts/header.php';
                                 </small>
                             </div>
                             <h2 class="card-title h4">
-                                <a href="/blog/<?= htmlspecialchars($post['slug']) ?>" class="text-decoration-none text-dark">
+                                <a href="<?= url('/blog/' . htmlspecialchars($post['slug'])) ?>" class="text-decoration-none text-dark">
                                     <?= htmlspecialchars($post['title']) ?>
                                 </a>
                             </h2>
-                            <?php if ($post['excerpt']): ?>
+                            <?php if (!empty($post['excerpt'])): ?>
                                 <p class="card-text text-muted"><?= htmlspecialchars($post['excerpt']) ?></p>
                             <?php endif; ?>
-                            <a href="/blog/<?= htmlspecialchars($post['slug']) ?>" class="btn btn-outline-primary btn-sm">
+                            <a href="<?= url('/blog/' . htmlspecialchars($post['slug'])) ?>" class="btn btn-outline-primary btn-sm">
                                 Read More <i class="bi bi-arrow-right"></i>
                             </a>
                         </div>
                         <div class="card-footer bg-transparent border-0">
-                            <small class="text-muted">By <?= htmlspecialchars($post['author_name']) ?></small>
+                            <small class="text-muted">By <?= htmlspecialchars($post['author_name'] ?? 'Admin') ?></small>
                         </div>
                     </article>
                 <?php endforeach; ?>
@@ -63,19 +66,19 @@ include VIEWS_PATH . '/layouts/header.php';
                         <ul class="pagination justify-content-center">
                             <?php if ($currentPage > 1): ?>
                                 <li class="page-item">
-                                    <a class="page-link" href="/blog?page=<?= $currentPage - 1 ?>">Previous</a>
+                                    <a class="page-link" href="<?= url('/blog?page=' . ($currentPage - 1)) ?>">Previous</a>
                                 </li>
                             <?php endif; ?>
                             
                             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
                                 <li class="page-item <?= $i === $currentPage ? 'active' : '' ?>">
-                                    <a class="page-link" href="/blog?page=<?= $i ?>"><?= $i ?></a>
+                                    <a class="page-link" href="<?= url('/blog?page=' . $i) ?>"><?= $i ?></a>
                                 </li>
                             <?php endfor; ?>
                             
                             <?php if ($currentPage < $totalPages): ?>
                                 <li class="page-item">
-                                    <a class="page-link" href="/blog?page=<?= $currentPage + 1 ?>">Next</a>
+                                    <a class="page-link" href="<?= url('/blog?page=' . ($currentPage + 1)) ?>">Next</a>
                                 </li>
                             <?php endif; ?>
                         </ul>
@@ -98,7 +101,7 @@ include VIEWS_PATH . '/layouts/header.php';
                         <ul class="list-unstyled mb-0">
                             <?php foreach ($categories as $category): ?>
                                 <li class="mb-2">
-                                    <a href="/blog/category/<?= htmlspecialchars($category['slug']) ?>" 
+                                    <a href="<?= url('/blog/category/' . htmlspecialchars($category['slug'])) ?>" 
                                        class="text-decoration-none">
                                         <?= htmlspecialchars($category['name']) ?>
                                     </a>
@@ -121,7 +124,7 @@ include VIEWS_PATH . '/layouts/header.php';
                         <ul class="list-unstyled mb-0">
                             <?php foreach ($recentPosts as $recent): ?>
                                 <li class="mb-3 pb-3 border-bottom">
-                                    <a href="/blog/<?= htmlspecialchars($recent['slug']) ?>" 
+                                    <a href="<?= url('/blog/' . htmlspecialchars($recent['slug'])) ?>" 
                                        class="text-decoration-none text-dark">
                                         <?= htmlspecialchars($recent['title']) ?>
                                     </a>

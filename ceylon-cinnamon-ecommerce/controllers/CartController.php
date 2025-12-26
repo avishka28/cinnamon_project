@@ -36,10 +36,16 @@ class CartController extends Controller
         // Validate stock and get any issues
         $stockIssues = $this->cart->validateStock();
         
-        $this->view('pages.cart', [
+        // Get flash messages
+        $success = $this->sessionManager->getFlash('success');
+        $error = $this->sessionManager->getFlash('error');
+        
+        $this->view('pages/cart', [
             'cart' => $summary,
             'stockIssues' => $stockIssues,
-            'csrf_token' => $this->sessionManager->getCsrfToken()
+            'csrf_token' => $this->sessionManager->getCsrfToken(),
+            'success' => $success,
+            'error' => $error
         ]);
     }
 
@@ -98,11 +104,23 @@ class CartController extends Controller
      */
     private function addAjax(): void
     {
-        // Get JSON input for AJAX requests
-        $input = $this->getJsonInput();
+        // For FormData submissions, get values from POST
+        // For JSON submissions, get from request body
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        
+        if (strpos($contentType, 'application/json') !== false) {
+            $input = $this->getJsonInput();
+            $csrfToken = $input['csrf_token'] ?? '';
+            $productId = (int) ($input['product_id'] ?? 0);
+            $quantity = (int) ($input['quantity'] ?? 1);
+        } else {
+            // FormData submission
+            $csrfToken = $this->input('csrf_token', '');
+            $productId = (int) $this->input('product_id', 0);
+            $quantity = (int) $this->input('quantity', 1);
+        }
         
         // Validate CSRF token (Requirement 10.2)
-        $csrfToken = $input['csrf_token'] ?? $this->input('csrf_token', '');
         if (!$this->sessionManager->validateCsrfToken($csrfToken)) {
             $this->json([
                 'success' => false,
@@ -110,9 +128,6 @@ class CartController extends Controller
             ], 403);
             return;
         }
-
-        $productId = (int) ($input['product_id'] ?? $this->input('product_id', 0));
-        $quantity = (int) ($input['quantity'] ?? $this->input('quantity', 1));
 
         if ($productId <= 0) {
             $this->json([
@@ -200,10 +215,22 @@ class CartController extends Controller
      */
     private function updateAjax(): void
     {
-        $input = $this->getJsonInput();
+        // Handle both JSON and FormData submissions
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        
+        if (strpos($contentType, 'application/json') !== false) {
+            $input = $this->getJsonInput();
+            $csrfToken = $input['csrf_token'] ?? '';
+            $productId = (int) ($input['product_id'] ?? 0);
+            $quantity = (int) ($input['quantity'] ?? 0);
+        } else {
+            // FormData submission
+            $csrfToken = $this->input('csrf_token', '');
+            $productId = (int) $this->input('product_id', 0);
+            $quantity = (int) $this->input('quantity', 0);
+        }
         
         // Validate CSRF token (Requirement 10.2)
-        $csrfToken = $input['csrf_token'] ?? $this->input('csrf_token', '');
         if (!$this->sessionManager->validateCsrfToken($csrfToken)) {
             $this->json([
                 'success' => false,
@@ -211,9 +238,6 @@ class CartController extends Controller
             ], 403);
             return;
         }
-
-        $productId = (int) ($input['product_id'] ?? $this->input('product_id', 0));
-        $quantity = (int) ($input['quantity'] ?? $this->input('quantity', 0));
 
         if ($productId <= 0) {
             $this->json([
@@ -235,9 +259,12 @@ class CartController extends Controller
         }
 
         if ($success) {
+            $summary = $this->cart->getSummary();
             $this->json([
                 'success' => true,
                 'message' => $message,
+                'cart_count' => $summary['item_count'] ?? 0,
+                'cart_total' => $summary['total'] ?? 0,
                 'cart' => $this->cart->toArray()
             ]);
         } else {
@@ -293,10 +320,20 @@ class CartController extends Controller
      */
     private function removeAjax(): void
     {
-        $input = $this->getJsonInput();
+        // Handle both JSON and FormData submissions
+        $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+        
+        if (strpos($contentType, 'application/json') !== false) {
+            $input = $this->getJsonInput();
+            $csrfToken = $input['csrf_token'] ?? '';
+            $productId = (int) ($input['product_id'] ?? 0);
+        } else {
+            // FormData submission
+            $csrfToken = $this->input('csrf_token', '');
+            $productId = (int) $this->input('product_id', 0);
+        }
         
         // Validate CSRF token (Requirement 10.2)
-        $csrfToken = $input['csrf_token'] ?? $this->input('csrf_token', '');
         if (!$this->sessionManager->validateCsrfToken($csrfToken)) {
             $this->json([
                 'success' => false,
@@ -304,8 +341,6 @@ class CartController extends Controller
             ], 403);
             return;
         }
-
-        $productId = (int) ($input['product_id'] ?? $this->input('product_id', 0));
 
         if ($productId <= 0) {
             $this->json([
@@ -316,9 +351,12 @@ class CartController extends Controller
         }
 
         if ($this->cart->remove($productId)) {
+            $summary = $this->cart->getSummary();
             $this->json([
                 'success' => true,
                 'message' => 'Item removed from cart.',
+                'cart_count' => $summary['item_count'] ?? 0,
+                'cart_total' => $summary['total'] ?? 0,
                 'cart' => $this->cart->toArray()
             ]);
         } else {

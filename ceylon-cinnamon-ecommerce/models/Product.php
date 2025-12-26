@@ -31,7 +31,10 @@ class Product extends Model
      */
     public function getFiltered(array $filters = [], int $limit = ITEMS_PER_PAGE, int $offset = 0): array
     {
-        $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug 
+        $sql = "SELECT p.*, c.name as category_name, c.slug as category_slug,
+                       (SELECT pi.image_url FROM product_images pi 
+                        WHERE pi.product_id = p.id 
+                        ORDER BY pi.is_primary DESC, pi.sort_order ASC LIMIT 1) as image_url
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
                 WHERE p.is_active = 1";
@@ -112,8 +115,12 @@ class Product extends Model
         $sql .= " ORDER BY {$sort}";
 
         // Get total count for pagination
-        $countSql = preg_replace('/SELECT .* FROM/', 'SELECT COUNT(*) FROM', $sql);
-        $countSql = preg_replace('/ORDER BY.*$/', '', $countSql);
+        $countSql = "SELECT COUNT(*) FROM {$this->table} p 
+                     LEFT JOIN categories c ON p.category_id = c.id 
+                     WHERE p.is_active = 1";
+        if (!empty($conditions)) {
+            $countSql .= " AND " . implode(' AND ', $conditions);
+        }
         $countStmt = $this->db->prepare($countSql);
         $countStmt->execute($params);
         $total = (int) $countStmt->fetchColumn();
@@ -300,7 +307,10 @@ class Product extends Model
             return [];
         }
 
-        $sql = "SELECT p.*, c.name as category_name 
+        $sql = "SELECT p.*, c.name as category_name,
+                       (SELECT pi.image_url FROM product_images pi 
+                        WHERE pi.product_id = p.id 
+                        ORDER BY pi.is_primary DESC, pi.sort_order ASC LIMIT 1) as image_url
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
                 WHERE p.id != :product_id 
@@ -326,7 +336,10 @@ class Product extends Model
      */
     public function getFeatured(int $limit = 8): array
     {
-        $sql = "SELECT p.*, c.name as category_name 
+        $sql = "SELECT p.*, c.name as category_name,
+                       (SELECT pi.image_url FROM product_images pi 
+                        WHERE pi.product_id = p.id 
+                        ORDER BY pi.is_primary DESC, pi.sort_order ASC LIMIT 1) as image_url
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
                 WHERE p.is_active = 1 AND p.stock_quantity > 0 
@@ -348,7 +361,10 @@ class Product extends Model
      */
     public function getOnSale(int $limit = 8): array
     {
-        $sql = "SELECT p.*, c.name as category_name 
+        $sql = "SELECT p.*, c.name as category_name,
+                       (SELECT pi.image_url FROM product_images pi 
+                        WHERE pi.product_id = p.id 
+                        ORDER BY pi.is_primary DESC, pi.sort_order ASC LIMIT 1) as image_url
                 FROM {$this->table} p 
                 LEFT JOIN categories c ON p.category_id = c.id 
                 WHERE p.is_active = 1 

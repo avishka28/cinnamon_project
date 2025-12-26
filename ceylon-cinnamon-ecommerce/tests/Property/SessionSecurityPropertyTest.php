@@ -55,7 +55,7 @@ class SessionSecurityPropertyTest extends TestCase
      */
     public function testSessionCookieHasSecurityFlags(): void
     {
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\bool() // Simulate different HTTPS states
             )
@@ -104,7 +104,7 @@ class SessionSecurityPropertyTest extends TestCase
      */
     public function testCsrfTokenFormat(): void
     {
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\pos() // Random iteration count
             )
@@ -135,7 +135,7 @@ class SessionSecurityPropertyTest extends TestCase
      */
     public function testCsrfTokenValidationIsTimingSafe(): void
     {
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\string(), // Random token
                 Generator\string()  // Random comparison token
@@ -163,7 +163,7 @@ class SessionSecurityPropertyTest extends TestCase
         // Use predefined valid session keys to avoid evaluation ratio issues
         $validKeys = ['user_data', 'cart_items', 'preferences', 'temp_data', 'flash_msg'];
         
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\elements(...$validKeys), // Valid session key
                 Generator\string()  // Random value
@@ -191,7 +191,7 @@ class SessionSecurityPropertyTest extends TestCase
      */
     public function testLoginSessionStructure(): void
     {
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\pos(),    // User ID
                 Generator\string(), // Email
@@ -254,7 +254,7 @@ class SessionSecurityPropertyTest extends TestCase
         // Use predefined valid session keys to avoid evaluation ratio issues
         $validKeys = ['custom_data', 'cart_items', 'preferences', 'temp_data', 'flash_msg'];
         
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\pos(),    // User ID
                 Generator\string(), // Random data

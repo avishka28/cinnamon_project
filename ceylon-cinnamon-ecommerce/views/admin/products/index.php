@@ -6,7 +6,10 @@
 
 include VIEWS_PATH . '/admin/layouts/admin_header.php';
 
-$flash = $sessionManager->getFlash('success') ?? $sessionManager->getFlash('error');
+$successFlash = $sessionManager->getFlash('success');
+$errorFlash = $sessionManager->getFlash('error');
+$flash = $successFlash ?? $errorFlash;
+$flashType = $errorFlash ? 'danger' : 'success';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -17,7 +20,7 @@ $flash = $sessionManager->getFlash('success') ?? $sessionManager->getFlash('erro
 </div>
 
 <?php if ($flash): ?>
-    <div class="alert alert-<?= isset($sessionManager->getFlash('error')) ? 'danger' : 'success' ?> alert-dismissible fade show">
+    <div class="alert alert-<?= $flashType ?> alert-dismissible fade show">
         <?= htmlspecialchars($flash) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>

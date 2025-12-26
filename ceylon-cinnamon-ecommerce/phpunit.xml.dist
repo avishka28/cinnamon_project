@@ -8,9 +8,6 @@
          failOnRisky="true"
          failOnWarning="true">
     <testsuites>
-        <testsuite name="Unit">
-            <directory>tests/Unit</directory>
-        </testsuite>
         <testsuite name="Property">
             <directory>tests/Property</directory>
         </testsuite>

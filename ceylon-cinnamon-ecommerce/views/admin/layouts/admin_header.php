@@ -26,12 +26,15 @@ $userRole = $sessionManager->getUserRole();
         }
         .sidebar {
             width: var(--sidebar-width);
-            min-height: 100vh;
+            height: 100vh;
             background: #212529;
             position: fixed;
             left: 0;
             top: 0;
             z-index: 100;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         .sidebar .nav-link {
             color: rgba(255,255,255,.8);
@@ -122,7 +125,7 @@ $userRole = $sessionManager->getUserRole();
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/categories') !== false ? 'active' : '' ?>" href="<?= url('/admin/categories') ?>">
+                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/categories') !== false && strpos($_SERVER['REQUEST_URI'], '/content/categories') === false ? 'active' : '' ?>" href="<?= url('/admin/categories') ?>">
                     <i class="bi bi-tags"></i> Categories
                 </a>
             </li>
@@ -136,8 +139,8 @@ $userRole = $sessionManager->getUserRole();
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/customers') !== false ? 'active' : '' ?>" href="<?= url('/admin/customers') ?>">
-                    <i class="bi bi-people"></i> Customers
+                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/shipping') !== false ? 'active' : '' ?>" href="<?= url('/admin/shipping') ?>">
+                    <i class="bi bi-truck"></i> Shipping
                 </a>
             </li>
         </ul>
@@ -146,27 +149,23 @@ $userRole = $sessionManager->getUserRole();
         <div class="sidebar-section mt-3">Content</div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/blog') !== false ? 'active' : '' ?>" href="<?= url('/admin/blog') ?>">
+                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/content/posts') !== false ? 'active' : '' ?>" href="<?= url('/admin/content/posts') ?>">
                     <i class="bi bi-file-text"></i> Blog Posts
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/pages') !== false ? 'active' : '' ?>" href="<?= url('/admin/pages') ?>">
-                    <i class="bi bi-file-earmark"></i> Pages
-                </a>
-            </li>
-        </ul>
-
-        <div class="sidebar-section mt-3">Settings</div>
-        <ul class="nav flex-column">
-            <li class="nav-item">
-                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/settings') !== false ? 'active' : '' ?>" href="<?= url('/admin/settings') ?>">
-                    <i class="bi bi-gear"></i> Settings
+                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/content/categories') !== false ? 'active' : '' ?>" href="<?= url('/admin/content/categories') ?>">
+                    <i class="bi bi-tags"></i> Blog Categories
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/users') !== false ? 'active' : '' ?>" href="<?= url('/admin/users') ?>">
-                    <i class="bi bi-person-gear"></i> Users
+                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/content/certificates') !== false ? 'active' : '' ?>" href="<?= url('/admin/content/certificates') ?>">
+                    <i class="bi bi-award"></i> Certificates
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link <?= strpos($_SERVER['REQUEST_URI'], '/admin/content/gallery') !== false ? 'active' : '' ?>" href="<?= url('/admin/content/gallery') ?>">
+                    <i class="bi bi-images"></i> Gallery
                 </a>
             </li>
         </ul>

@@ -10,10 +10,17 @@
     // Configuration
     // ============================================
     const CONFIG = {
-        apiBaseUrl: '',
+        apiBaseUrl: window.APP_BASE_URL || '',
         toastDuration: 3000,
         debounceDelay: 300
     };
+
+    /**
+     * Get full URL with base path
+     */
+    function getUrl(path) {
+        return CONFIG.apiBaseUrl + '/' + path.replace(/^\//, '');
+    }
 
     // ============================================
     // Utility Functions
@@ -128,7 +135,7 @@
                 formData.append('quantity', quantity);
                 formData.append('csrf_token', getCsrfToken());
 
-                const response = await fetch('/cart/add', {
+                const response = await fetch(getUrl('/cart/add'), {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -139,7 +146,7 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    this.updateCartCount(data.cart_count || data.count);
+                    this.updateCartCount(data.cart_count || data.count || (data.cart ? data.cart.item_count : 0));
                     Toast.success(data.message || 'Product added to cart!');
                     return true;
                 } else {
@@ -163,7 +170,7 @@
                 formData.append('quantity', quantity);
                 formData.append('csrf_token', getCsrfToken());
 
-                const response = await fetch('/cart/update', {
+                const response = await fetch(getUrl('/cart/update'), {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -202,7 +209,7 @@
                 formData.append('product_id', productId);
                 formData.append('csrf_token', getCsrfToken());
 
-                const response = await fetch('/cart/remove', {
+                const response = await fetch(getUrl('/cart/remove'), {
                     method: 'POST',
                     body: formData,
                     headers: {
@@ -219,8 +226,8 @@
                     if (itemRow) {
                         itemRow.remove();
                     }
-                    // Reload if cart is empty
-                    if (data.cart_count === 0) {
+                    // Reload if cart is empty or if on cart page
+                    if (data.cart_count === 0 || window.location.pathname.includes('/cart')) {
                         location.reload();
                     } else if (data.cart_total !== undefined) {
                         this.updateCartTotal(data.cart_total);
@@ -552,28 +559,8 @@
                 });
             });
 
-            // Add to cart form (product detail page)
-            const addToCartForm = document.getElementById('add-to-cart-form');
-            if (addToCartForm) {
-                addToCartForm.addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    
-                    const productId = this.querySelector('[name="product_id"]').value;
-                    const quantity = this.querySelector('[name="quantity"]').value;
-                    const submitBtn = this.querySelector('[type="submit"]');
-                    
-                    // Disable button and show loading
-                    const originalHtml = submitBtn.innerHTML;
-                    submitBtn.disabled = true;
-                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Adding...';
-                    
-                    await Cart.add(productId, quantity);
-                    
-                    // Restore button
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = originalHtml;
-                });
-            }
+            // Note: Add to cart form on product detail page is handled by inline script
+            // in product_detail.php to ensure proper base URL is used for subdirectory installations
         }
     };
 

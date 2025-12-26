@@ -4,26 +4,28 @@
  * Requirements: 8.1 - Blog category management
  */
 include VIEWS_PATH . '/admin/layouts/admin_header.php';
+$successFlash = $sessionManager->getFlash('success');
+$errorFlash = $sessionManager->getFlash('error');
 ?>
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Blog Categories</h1>
-        <a href="/admin/content/categories/create" class="btn btn-primary">
+        <a href="<?= url('/admin/content/categories/create') ?>" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> New Category
         </a>
     </div>
 
-    <?php if ($flash = $sessionManager->getFlash('success')): ?>
+    <?php if ($successFlash): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash) ?>
+            <?= htmlspecialchars($successFlash) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
-    <?php if ($flash = $sessionManager->getFlash('error')): ?>
+    <?php if ($errorFlash): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash) ?>
+            <?= htmlspecialchars($errorFlash) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
@@ -60,7 +62,7 @@ include VIEWS_PATH . '/admin/layouts/admin_header.php';
                                     </td>
                                     <td><?= $category['sort_order'] ?></td>
                                     <td>
-                                        <a href="/admin/content/categories/<?= $category['id'] ?>/edit" 
+                                        <a href="<?= url('/admin/content/categories/' . $category['id'] . '/edit') ?>" 
                                            class="btn btn-sm btn-outline-primary" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
@@ -89,7 +91,7 @@ include VIEWS_PATH . '/admin/layouts/admin_header.php';
 <script>
 function deleteCategory(id) {
     if (confirm('Are you sure you want to delete this category?')) {
-        fetch('/admin/content/categories/' + id, {
+        fetch('<?= url('/admin/content/categories/') ?>' + id, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': '<?= $csrf_token ?>',

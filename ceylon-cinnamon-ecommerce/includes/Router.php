@@ -58,9 +58,9 @@ class Router
         $uri = parse_url($uri, PHP_URL_PATH);
         
         // Remove base path (for subdirectory installations)
-        $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-        $basePath = dirname($scriptName);
-        if ($basePath !== '/' && $basePath !== '\\') {
+        // Use BASE_PATH constant defined in config.php
+        $basePath = defined('BASE_PATH') ? BASE_PATH : '';
+        if ($basePath !== '') {
             $uri = substr($uri, strlen($basePath)) ?: '/';
         }
         

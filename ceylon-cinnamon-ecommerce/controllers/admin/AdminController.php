@@ -117,6 +117,117 @@ class AdminController extends Controller
     }
 
     /**
+     * Display admin profile page
+     */
+    public function profile(): void
+    {
+        $this->sessionManager->start();
+        $user = $this->sessionManager->getUser();
+        
+        $this->adminView('profile', [
+            'title' => 'My Profile - ' . APP_NAME,
+            'user' => $user,
+            'csrf_token' => $this->sessionManager->getCsrfToken(),
+            'success' => $_SESSION['flash_success'] ?? null,
+            'error' => $_SESSION['flash_error'] ?? null
+        ]);
+        
+        unset($_SESSION['flash_success'], $_SESSION['flash_error']);
+    }
+
+    /**
+     * Update admin profile
+     */
+    public function updateProfile(): void
+    {
+        if (!$this->isPost()) {
+            $this->redirect('/admin/profile');
+        }
+
+        $this->sessionManager->start();
+
+        // Validate CSRF token
+        if (!$this->sessionManager->validateCsrfToken($this->input('csrf_token', ''))) {
+            $_SESSION['flash_error'] = 'Invalid security token. Please try again.';
+            $this->redirect('/admin/profile');
+        }
+
+        $user = $this->sessionManager->getUser();
+        $userId = (int) $user['id'];
+
+        $firstName = $this->sanitize($this->input('first_name', ''));
+        $lastName = $this->sanitize($this->input('last_name', ''));
+        $email = $this->sanitize($this->input('email', ''));
+        $currentPassword = $this->input('current_password', '');
+        $newPassword = $this->input('new_password', '');
+        $confirmPassword = $this->input('confirm_password', '');
+
+        // Validate required fields
+        if (empty($firstName) || empty($lastName) || empty($email)) {
+            $_SESSION['flash_error'] = 'First name, last name, and email are required.';
+            $this->redirect('/admin/profile');
+        }
+
+        // Validate email format
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $_SESSION['flash_error'] = 'Please enter a valid email address.';
+            $this->redirect('/admin/profile');
+        }
+
+        // Check if email is already taken by another user
+        $existingUser = $this->userModel->findByEmail($email);
+        if ($existingUser && $existingUser['id'] != $userId) {
+            $_SESSION['flash_error'] = 'This email is already in use by another account.';
+            $this->redirect('/admin/profile');
+        }
+
+        // Handle password change if requested
+        if (!empty($newPassword)) {
+            if (empty($currentPassword)) {
+                $_SESSION['flash_error'] = 'Current password is required to change password.';
+                $this->redirect('/admin/profile');
+            }
+
+            // Verify current password
+            $fullUser = $this->userModel->find($userId);
+            if (!password_verify($currentPassword, $fullUser['password_hash'])) {
+                $_SESSION['flash_error'] = 'Current password is incorrect.';
+                $this->redirect('/admin/profile');
+            }
+
+            if (strlen($newPassword) < 8) {
+                $_SESSION['flash_error'] = 'New password must be at least 8 characters.';
+                $this->redirect('/admin/profile');
+            }
+
+            if ($newPassword !== $confirmPassword) {
+                $_SESSION['flash_error'] = 'New passwords do not match.';
+                $this->redirect('/admin/profile');
+            }
+        }
+
+        // Update user data
+        $updateData = [
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $email
+        ];
+
+        if (!empty($newPassword)) {
+            $updateData['password_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
+        }
+
+        $this->userModel->update($userId, $updateData);
+
+        // Update session with new user data
+        $updatedUser = $this->userModel->find($userId);
+        $this->sessionManager->login($updatedUser);
+
+        $_SESSION['flash_success'] = 'Profile updated successfully.';
+        $this->redirect('/admin/profile');
+    }
+
+    /**
      * Get dashboard statistics using Analytics model
      * Requirements: 15.1, 15.2, 15.3, 15.4, 15.5
      * 

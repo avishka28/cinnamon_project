@@ -49,26 +49,26 @@ class LanguageManager
 
     /**
      * Detect language from various sources
-     * Priority: Session > URL parameter > Browser Accept-Language > Default
+     * Priority: URL parameter > Session > Browser Accept-Language > Default
      * Requirements: 9.1, 9.2, 9.4
      * 
      * @return string Language code
      */
     private function detectLanguage(): string
     {
-        // 1. Check session for stored preference
-        if ($this->sessionManager->has(self::SESSION_KEY)) {
-            $language = $this->sessionManager->get(self::SESSION_KEY);
-            if ($this->isSupported($language)) {
-                return $language;
-            }
-        }
-
-        // 2. Check URL parameter
+        // 1. Check URL parameter FIRST (highest priority for switching)
         if (isset($_GET['lang'])) {
             $language = $this->sanitizeLanguageCode($_GET['lang']);
             if ($this->isSupported($language)) {
                 $this->setLanguage($language);
+                return $language;
+            }
+        }
+
+        // 2. Check session for stored preference
+        if ($this->sessionManager->has(self::SESSION_KEY)) {
+            $language = $this->sessionManager->get(self::SESSION_KEY);
+            if ($this->isSupported($language)) {
                 return $language;
             }
         }
@@ -256,7 +256,7 @@ class LanguageManager
      * Translate a key
      * Requirements: 9.5 - Provide translated content
      * 
-     * @param string $key Translation key (e.g., 'common.welcome')
+     * @param string $key Translation key (e.g., 'common.welcome' or 'nav.home')
      * @param array $params Parameters for string interpolation
      * @return string Translated string or key if not found
      */
@@ -276,30 +276,69 @@ class LanguageManager
         // Load translations if not already loaded
         $cacheKey = "{$this->currentLanguage}.{$namespace}";
         if (!isset($this->translations[$cacheKey])) {
-            $this->loadTranslations($this->currentLanguage, $namespace);
+            $loaded = $this->loadTranslations($this->currentLanguage, $namespace);
+            
+            // If namespace file doesn't exist, try loading from common with full key
+            if (!$loaded && $namespace !== 'common') {
+                $commonKey = "{$this->currentLanguage}.common";
+                if (!isset($this->translations[$commonKey])) {
+                    $this->loadTranslations($this->currentLanguage, 'common');
+                }
+                // Check if the full key exists in common (e.g., 'nav.home' as a key in common.php)
+                if (isset($this->translations[$commonKey][$key])) {
+                    $translation = $this->translations[$commonKey][$key];
+                    return $this->interpolateParams($translation, $params);
+                }
+            }
         }
 
         // Get translation
         if (isset($this->translations[$cacheKey][$translationKey])) {
             $translation = $this->translations[$cacheKey][$translationKey];
         } else {
-            // Fallback to English if translation not found
-            if ($this->currentLanguage !== 'en') {
-                $this->loadTranslations('en', $namespace);
-                $enKey = "en.{$namespace}";
-                $translation = $this->translations[$enKey][$translationKey] ?? $key;
+            // Try the full key in common namespace
+            $commonKey = "{$this->currentLanguage}.common";
+            if (!isset($this->translations[$commonKey])) {
+                $this->loadTranslations($this->currentLanguage, 'common');
+            }
+            if (isset($this->translations[$commonKey][$key])) {
+                $translation = $this->translations[$commonKey][$key];
             } else {
-                $translation = $key;
+                // Fallback to English if translation not found
+                if ($this->currentLanguage !== 'en') {
+                    $this->loadTranslations('en', $namespace);
+                    $enKey = "en.{$namespace}";
+                    if (isset($this->translations[$enKey][$translationKey])) {
+                        $translation = $this->translations[$enKey][$translationKey];
+                    } else {
+                        // Try English common with full key
+                        $this->loadTranslations('en', 'common');
+                        $enCommonKey = "en.common";
+                        $translation = $this->translations[$enCommonKey][$key] ?? $key;
+                    }
+                } else {
+                    $translation = $key;
+                }
             }
         }
 
-        // Interpolate parameters
+        return $this->interpolateParams($translation, $params);
+    }
+
+    /**
+     * Interpolate parameters into translation string
+     * 
+     * @param string $translation Translation string
+     * @param array $params Parameters for interpolation
+     * @return string Interpolated string
+     */
+    private function interpolateParams(string $translation, array $params): string
+    {
         if (!empty($params)) {
             foreach ($params as $paramKey => $paramValue) {
-                $translation = str_replace(":{$paramKey}", $paramValue, $translation);
+                $translation = str_replace(":{$paramKey}", (string)$paramValue, $translation);
             }
         }
-
         return $translation;
     }
 
@@ -331,13 +370,21 @@ class LanguageManager
         // Get current URL
         $currentUrl = $_SERVER['REQUEST_URI'] ?? '/';
         
-        // Remove existing lang parameter if present
-        $url = preg_replace('/[?&]lang=[a-z]+/', '', $currentUrl);
+        // Parse the URL to handle query parameters properly
+        $parsedUrl = parse_url($currentUrl);
+        $path = $parsedUrl['path'] ?? '/';
+        $queryString = $parsedUrl['query'] ?? '';
         
-        // Add new lang parameter
-        $separator = strpos($url, '?') !== false ? '&' : '?';
+        // Parse existing query parameters
+        parse_str($queryString, $queryParams);
         
-        return $url . $separator . 'lang=' . $language;
+        // Set the new language parameter
+        $queryParams['lang'] = $language;
+        
+        // Rebuild the URL
+        $newQueryString = http_build_query($queryParams);
+        
+        return $path . '?' . $newQueryString;
     }
 
     /**

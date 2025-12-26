@@ -67,10 +67,10 @@ include VIEWS_PATH . '/layouts/header.php';
         <div class="row g-4">
             <?php
             $categories = [
-                ['name' => 'Cinnamon Sticks', 'slug' => 'sticks', 'icon' => 'bi-tree', 'desc' => 'Premium quality cinnamon quills'],
-                ['name' => 'Cinnamon Powder', 'slug' => 'powder', 'icon' => 'bi-cup-hot', 'desc' => 'Finely ground for cooking & baking'],
-                ['name' => 'Cinnamon Oil', 'slug' => 'oil', 'icon' => 'bi-droplet', 'desc' => 'Pure essential oils'],
-                ['name' => 'Cinnamon Tea', 'slug' => 'tea', 'icon' => 'bi-cup', 'desc' => 'Aromatic herbal blends'],
+                ['name' => 'Cinnamon Sticks', 'slug' => 'cinnamon-sticks', 'icon' => 'bi-tree', 'desc' => 'Premium quality cinnamon quills'],
+                ['name' => 'Cinnamon Powder', 'slug' => 'cinnamon-powder', 'icon' => 'bi-cup-hot', 'desc' => 'Finely ground for cooking & baking'],
+                ['name' => 'Cinnamon Oil', 'slug' => 'cinnamon-oil', 'icon' => 'bi-droplet', 'desc' => 'Pure essential oils'],
+                ['name' => 'Cinnamon Tea', 'slug' => 'cinnamon-tea', 'icon' => 'bi-cup', 'desc' => 'Aromatic herbal blends'],
             ];
             foreach ($categories as $cat): ?>
             <div class="col-6 col-md-3">
@@ -111,11 +111,31 @@ include VIEWS_PATH . '/layouts/header.php';
                     <div class="card h-100 product-card">
                         <a href="<?= url('/products/' . htmlspecialchars($product['slug'])) ?>">
                             <div class="position-relative overflow-hidden">
-                                <img src="<?= url('/uploads/products/' . htmlspecialchars($product['slug']) . '.jpg') ?>" 
+                                <?php 
+                                // Get product image URL
+                                $imageUrl = null;
+                                if (!empty($product['image_url'])) {
+                                    $imageUrl = $product['image_url'];
+                                } elseif (!empty($product['primary_image'])) {
+                                    $imageUrl = $product['primary_image'];
+                                }
+                                
+                                // Check if it's a relative path and prepend base URL
+                                if ($imageUrl && !preg_match('/^https?:\/\//', $imageUrl)) {
+                                    $imageUrl = url($imageUrl);
+                                }
+                                
+                                // Fallback to placeholder
+                                if (!$imageUrl) {
+                                    $imageUrl = 'https://placehold.co/300x200/FFF8DC/8B4513?text=' . urlencode($product['name']);
+                                }
+                                ?>
+                                <img src="<?= htmlspecialchars($imageUrl) ?>" 
                                      class="card-img-top" 
                                      alt="<?= htmlspecialchars($product['name']) ?>"
                                      loading="lazy"
-                                     onerror="this.src='https://via.placeholder.com/300x300/FFF8DC/8B4513?text=Product'">
+                                     style="height: 200px; object-fit: cover;"
+                                     onerror="this.src='https://placehold.co/300x200/FFF8DC/8B4513?text=Cinnamon'">
                                 <?php if (!empty($product['is_organic'])): ?>
                                 <span class="badge bg-success position-absolute top-0 start-0 m-2">Organic</span>
                                 <?php endif; ?>

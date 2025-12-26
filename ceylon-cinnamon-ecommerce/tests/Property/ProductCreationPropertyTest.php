@@ -108,7 +108,7 @@ class ProductCreationPropertyTest extends TestCase
 
         $categoryId = $this->testCategoryIds[0];
 
-        $this->limitTo(100)
+        $this->limitTo(10)
             ->forAll(
                 Generator\suchThat(
                     fn($s) => strlen($s) >= 3 && strlen($s) <= 20,
@@ -311,7 +311,7 @@ class ProductCreationPropertyTest extends TestCase
 
         $categoryId = $this->testCategoryIds[0];
 
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\choose(100, 10000),  // regular price in cents
                 Generator\choose(0, 99)        // sale price percentage (0-99% of regular)

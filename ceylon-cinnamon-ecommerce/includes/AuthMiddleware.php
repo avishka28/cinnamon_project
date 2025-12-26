@@ -32,7 +32,7 @@ class AuthMiddleware implements MiddlewareInterface
         if (!$this->sessionManager->isLoggedIn()) {
             $redirect = urlencode($_SERVER['REQUEST_URI'] ?? '/dashboard');
             http_response_code(302);
-            header('Location: /login?redirect=' . $redirect);
+            header('Location: ' . url('/login') . '?redirect=' . $redirect);
             exit;
         }
 

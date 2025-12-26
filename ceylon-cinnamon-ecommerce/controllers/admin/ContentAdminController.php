@@ -151,8 +151,9 @@ class ContentAdminController extends Controller
     /**
      * Show edit blog post form
      */
-    public function edit(int $id): void
+    public function edit($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
         
         $post = $this->blogPostModel->find($id);
@@ -174,8 +175,9 @@ class ContentAdminController extends Controller
     /**
      * Update blog post
      */
-    public function update(int $id): void
+    public function update($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/content/posts/' . $id . '/edit');
         }
@@ -252,8 +254,9 @@ class ContentAdminController extends Controller
     /**
      * Delete blog post
      */
-    public function destroy(int $id): void
+    public function destroy($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
 
         $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $this->input('csrf_token', '');
@@ -387,8 +390,9 @@ class ContentAdminController extends Controller
     /**
      * Show edit category form
      */
-    public function editCategory(int $id): void
+    public function editCategory($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
         
         $category = $this->blogCategoryModel->find($id);
@@ -407,8 +411,9 @@ class ContentAdminController extends Controller
     /**
      * Update category
      */
-    public function updateCategory(int $id): void
+    public function updateCategory($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/content/categories/' . $id . '/edit');
         }
@@ -470,8 +475,9 @@ class ContentAdminController extends Controller
     /**
      * Delete category
      */
-    public function destroyCategory(int $id): void
+    public function destroyCategory($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
 
         $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $this->input('csrf_token', '');
@@ -614,8 +620,9 @@ class ContentAdminController extends Controller
     /**
      * Show edit certificate form
      */
-    public function editCertificate(int $id): void
+    public function editCertificate($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
         
         $certificate = $this->certificateModel->find($id);
@@ -634,8 +641,9 @@ class ContentAdminController extends Controller
     /**
      * Update certificate
      */
-    public function updateCertificate(int $id): void
+    public function updateCertificate($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/content/certificates/' . $id . '/edit');
         }
@@ -709,8 +717,9 @@ class ContentAdminController extends Controller
     /**
      * Delete certificate
      */
-    public function destroyCertificate(int $id): void
+    public function destroyCertificate($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
 
         $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $this->input('csrf_token', '');
@@ -851,8 +860,9 @@ class ContentAdminController extends Controller
     /**
      * Show edit gallery item form
      */
-    public function editGalleryItem(int $id): void
+    public function editGalleryItem($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
         
         $item = $this->galleryItemModel->find($id);
@@ -871,8 +881,9 @@ class ContentAdminController extends Controller
     /**
      * Update gallery item
      */
-    public function updateGalleryItem(int $id): void
+    public function updateGalleryItem($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/content/gallery/' . $id . '/edit');
         }
@@ -945,8 +956,9 @@ class ContentAdminController extends Controller
     /**
      * Delete gallery item
      */
-    public function destroyGalleryItem(int $id): void
+    public function destroyGalleryItem($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
 
         $token = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? $this->input('csrf_token', '');

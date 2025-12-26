@@ -232,7 +232,8 @@ class ProductController extends Controller
             'metaTitle' => $product['meta_title'] ?? $product['name'],
             'metaDescription' => $product['meta_description'] ?? $product['short_description'],
             'seo' => $seo,
-            'isWholesale' => $isWholesale
+            'isWholesale' => $isWholesale,
+            'csrf_token' => (new SessionManager())->getCsrfToken()
         ]);
     }
 
@@ -246,9 +247,20 @@ class ProductController extends Controller
         $filters = [];
 
         // Category filter (Requirement 1.2)
-        $categoryId = $this->input('category');
-        if ($categoryId !== null && is_numeric($categoryId)) {
-            $filters['category_id'] = (int) $categoryId;
+        // Support both numeric ID and slug
+        $categoryParam = $this->input('category');
+        if ($categoryParam !== null && $categoryParam !== '') {
+            if (is_numeric($categoryParam)) {
+                $filters['category_id'] = (int) $categoryParam;
+            } else {
+                // Look up category by slug
+                $category = $this->categoryModel->findBySlug($this->sanitize($categoryParam));
+                if ($category) {
+                    // Get all descendant category IDs for hierarchical filtering
+                    $categoryIds = $this->categoryModel->getDescendantIds((int) $category['id']);
+                    $filters['category_ids'] = $categoryIds;
+                }
+            }
         }
 
         // Price range filter (Requirement 1.3)

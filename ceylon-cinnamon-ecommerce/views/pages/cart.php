@@ -9,21 +9,25 @@
 
 $pageTitle = 'Shopping Cart - Ceylon Cinnamon';
 include VIEWS_PATH . '/layouts/header.php';
+
+// Get flash messages if available
+$successMessage = $success ?? null;
+$errorMessage = $error ?? null;
 ?>
 
 <div class="container py-5">
     <h1 class="mb-4">Shopping Cart</h1>
 
-    <?php if ($sessionManager->getFlash('success')): ?>
+    <?php if ($successMessage): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($sessionManager->getFlash('success')) ?>
+            <?= htmlspecialchars($successMessage) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
-    <?php if ($sessionManager->getFlash('error')): ?>
+    <?php if ($errorMessage): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($sessionManager->getFlash('error')) ?>
+            <?= htmlspecialchars($errorMessage) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
@@ -39,7 +43,7 @@ include VIEWS_PATH . '/layouts/header.php';
             <i class="bi bi-cart-x display-1 text-muted"></i>
             <h3 class="mt-3">Your cart is empty</h3>
             <p class="text-muted">Browse our products and add items to your cart.</p>
-            <a href="/products" class="btn btn-primary">Continue Shopping</a>
+            <a href="<?= url('/products') ?>" class="btn btn-primary">Continue Shopping</a>
         </div>
     <?php else: ?>
         <div class="row">
@@ -69,7 +73,7 @@ include VIEWS_PATH . '/layouts/header.php';
                                                 <div class="d-flex align-items-center">
                                                     <div>
                                                         <h6 class="mb-0">
-                                                            <a href="/products/<?= htmlspecialchars($item['product']['slug']) ?>" 
+                                                            <a href="<?= url('/products/' . htmlspecialchars($item['product']['slug'])) ?>" 
                                                                class="text-decoration-none">
                                                                 <?= htmlspecialchars($item['product']['name']) ?>
                                                             </a>
@@ -95,7 +99,7 @@ include VIEWS_PATH . '/layouts/header.php';
                                                 <?php endif; ?>
                                             </td>
                                             <td>
-                                                <form action="/cart/update" method="POST" class="cart-update-form">
+                                                <form action="<?= url('/cart/update') ?>" method="POST" class="cart-update-form">
                                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                                                     <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
                                                     <div class="input-group input-group-sm">
@@ -115,7 +119,7 @@ include VIEWS_PATH . '/layouts/header.php';
                                                 </span>
                                             </td>
                                             <td>
-                                                <form action="/cart/remove" method="POST" class="cart-remove-form">
+                                                <form action="<?= url('/cart/remove') ?>" method="POST" class="cart-remove-form">
                                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                                                     <input type="hidden" name="product_id" value="<?= $item['product_id'] ?>">
                                                     <button type="submit" class="btn btn-sm btn-outline-danger" 
@@ -133,10 +137,10 @@ include VIEWS_PATH . '/layouts/header.php';
                 </div>
 
                 <div class="d-flex justify-content-between mt-3">
-                    <a href="/products" class="btn btn-outline-primary">
+                    <a href="<?= url('/products') ?>" class="btn btn-outline-primary">
                         <i class="bi bi-arrow-left"></i> Continue Shopping
                     </a>
-                    <form action="/cart/clear" method="POST" class="d-inline">
+                    <form action="<?= url('/cart/clear') ?>" method="POST" class="d-inline">
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
                         <button type="submit" class="btn btn-outline-danger" 
                                 onclick="return confirm('Are you sure you want to clear your cart?')">
@@ -167,7 +171,7 @@ include VIEWS_PATH . '/layouts/header.php';
                         </div>
                         
                         <?php if (empty($stockIssues)): ?>
-                            <a href="/checkout" class="btn btn-primary w-100">
+                            <a href="<?= url('/checkout') ?>" class="btn btn-primary w-100">
                                 Proceed to Checkout
                             </a>
                         <?php else: ?>
@@ -228,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateCartItem(form) {
         const formData = new FormData(form);
         
-        fetch('/cart/update', {
+        fetch('<?= url('/cart/update') ?>', {
             method: 'POST',
             body: formData
         })

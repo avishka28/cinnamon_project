@@ -68,8 +68,9 @@ class OrderAdminController extends Controller
      * Display order detail view
      * Requirements: 7.4 - Order detail view showing customer info, products, payment status
      */
-    public function show(int $id): void
+    public function show($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
         
         $order = $this->orderModel->getFullDetails($id);
@@ -92,8 +93,9 @@ class OrderAdminController extends Controller
      * Update order status
      * Requirements: 7.2 - Order status updates with customer notification
      */
-    public function updateStatus(int $id): void
+    public function updateStatus($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/orders/' . $id);
         }
@@ -169,8 +171,9 @@ class OrderAdminController extends Controller
      * Add note to order
      * Requirements: 7.5 - Order notes functionality
      */
-    public function addNote(int $id): void
+    public function addNote($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/orders/' . $id);
         }
@@ -234,8 +237,9 @@ class OrderAdminController extends Controller
      * Generate and download invoice PDF
      * Requirements: 7.3 - Invoice generation with order details and company branding
      */
-    public function invoice(int $id): void
+    public function invoice($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
 
         $order = $this->orderModel->getFullDetails($id);

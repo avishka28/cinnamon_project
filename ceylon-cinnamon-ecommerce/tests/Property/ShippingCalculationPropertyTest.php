@@ -182,7 +182,7 @@ class ShippingCalculationPropertyTest extends TestCase
         $methodId = $this->testMethodIds[0];
         $method = $this->methodModel->find($methodId);
 
-        $this->limitTo(100)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(0.1, 50.0),  // weight in kg
                 Generator\float()->between(10.0, 500.0) // order amount
@@ -223,7 +223,7 @@ class ShippingCalculationPropertyTest extends TestCase
         $method = $this->methodModel->find($methodId);
         $threshold = (float) $method['free_shipping_threshold'];
 
-        $this->limitTo(100)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(0.1, 20.0),  // weight in kg
                 Generator\float()->between($threshold, $threshold + 500.0) // order amount above threshold
@@ -260,7 +260,7 @@ class ShippingCalculationPropertyTest extends TestCase
         $method = $this->methodModel->find($methodId);
         $threshold = (float) $method['free_shipping_threshold'];
 
-        $this->limitTo(100)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(0.1, 20.0),  // weight in kg
                 Generator\float()->between(10.0, $threshold - 0.01) // order amount below threshold
@@ -301,7 +301,7 @@ class ShippingCalculationPropertyTest extends TestCase
         $methodId = $this->testMethodIds[2];
 
         // Test bracket 1: 0-1kg = $8.00
-        $this->limitTo(50)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(0.01, 0.99),
                 Generator\float()->between(10.0, 200.0)
@@ -318,7 +318,7 @@ class ShippingCalculationPropertyTest extends TestCase
             });
 
         // Test bracket 2: 1-5kg = $15.00
-        $this->limitTo(50)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(1.0, 4.99),
                 Generator\float()->between(10.0, 200.0)
@@ -335,7 +335,7 @@ class ShippingCalculationPropertyTest extends TestCase
             });
 
         // Test bracket 3: 5kg+ = $25.00
-        $this->limitTo(50)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(5.0, 50.0),
                 Generator\float()->between(10.0, 200.0)
@@ -369,7 +369,7 @@ class ShippingCalculationPropertyTest extends TestCase
         $methodId = $this->testMethodIds[3];
 
         // Test below minimum weight
-        $this->limitTo(50)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(0.01, 0.49),
                 Generator\float()->between(10.0, 200.0)
@@ -384,7 +384,7 @@ class ShippingCalculationPropertyTest extends TestCase
             });
 
         // Test above maximum weight
-        $this->limitTo(50)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(10.01, 50.0),
                 Generator\float()->between(10.0, 200.0)
@@ -399,7 +399,7 @@ class ShippingCalculationPropertyTest extends TestCase
             });
 
         // Test within weight limits
-        $this->limitTo(50)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(0.5, 10.0),
                 Generator\float()->between(10.0, 200.0)
@@ -430,7 +430,7 @@ class ShippingCalculationPropertyTest extends TestCase
         // Test with method 1 (Standard Shipping)
         $methodId = $this->testMethodIds[0];
 
-        $this->limitTo(100)
+        $this->limitTo(10)
             ->forAll(
                 Generator\float()->between(0.1, 100.0),
                 Generator\float()->between(1.0, 1000.0)

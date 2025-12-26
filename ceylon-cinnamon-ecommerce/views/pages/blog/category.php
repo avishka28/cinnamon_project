@@ -12,8 +12,8 @@ include VIEWS_PATH . '/layouts/header.php';
         <div class="col-lg-8">
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="/">Home</a></li>
-                    <li class="breadcrumb-item"><a href="/blog">Blog</a></li>
+                    <li class="breadcrumb-item"><a href="<?= url('/') ?>">Home</a></li>
+                    <li class="breadcrumb-item"><a href="<?= url('/blog') ?>">Blog</a></li>
                     <li class="breadcrumb-item active"><?= htmlspecialchars($category['name']) ?></li>
                 </ol>
             </nav>
@@ -31,13 +31,16 @@ include VIEWS_PATH . '/layouts/header.php';
             <?php else: ?>
                 <?php foreach ($posts as $post): ?>
                     <article class="card mb-4 border-0 shadow-sm">
-                        <?php if ($post['featured_image']): ?>
-                            <a href="/blog/<?= htmlspecialchars($post['slug']) ?>">
-                                <img src="<?= htmlspecialchars($post['featured_image']) ?>" 
-                                     class="card-img-top" alt="<?= htmlspecialchars($post['title']) ?>"
-                                     style="height: 250px; object-fit: cover;">
-                            </a>
-                        <?php endif; ?>
+                        <a href="<?= url('/blog/' . htmlspecialchars($post['slug'])) ?>">
+                            <?php 
+                            $blogImage = !empty($post['featured_image']) && file_exists(PUBLIC_PATH . '/' . $post['featured_image']) 
+                                ? url('/' . $post['featured_image']) 
+                                : 'https://placehold.co/800x250/FFF8DC/8B4513?text=' . urlencode($post['title']);
+                            ?>
+                            <img src="<?= $blogImage ?>" 
+                                 class="card-img-top" alt="<?= htmlspecialchars($post['title']) ?>"
+                                 style="height: 250px; object-fit: cover;">
+                        </a>
                         <div class="card-body">
                             <div class="mb-2">
                                 <small class="text-muted">
@@ -45,19 +48,19 @@ include VIEWS_PATH . '/layouts/header.php';
                                 </small>
                             </div>
                             <h2 class="card-title h4">
-                                <a href="/blog/<?= htmlspecialchars($post['slug']) ?>" class="text-decoration-none text-dark">
+                                <a href="<?= url('/blog/' . htmlspecialchars($post['slug'])) ?>" class="text-decoration-none text-dark">
                                     <?= htmlspecialchars($post['title']) ?>
                                 </a>
                             </h2>
-                            <?php if ($post['excerpt']): ?>
+                            <?php if (!empty($post['excerpt'])): ?>
                                 <p class="card-text text-muted"><?= htmlspecialchars($post['excerpt']) ?></p>
                             <?php endif; ?>
-                            <a href="/blog/<?= htmlspecialchars($post['slug']) ?>" class="btn btn-outline-primary btn-sm">
+                            <a href="<?= url('/blog/' . htmlspecialchars($post['slug'])) ?>" class="btn btn-outline-primary btn-sm">
                                 Read More <i class="bi bi-arrow-right"></i>
                             </a>
                         </div>
                         <div class="card-footer bg-transparent border-0">
-                            <small class="text-muted">By <?= htmlspecialchars($post['author_name']) ?></small>
+                            <small class="text-muted">By <?= htmlspecialchars($post['author_name'] ?? 'Admin') ?></small>
                         </div>
                     </article>
                 <?php endforeach; ?>
@@ -75,7 +78,7 @@ include VIEWS_PATH . '/layouts/header.php';
                     <ul class="list-unstyled mb-0">
                         <?php foreach ($categories as $cat): ?>
                             <li class="mb-2">
-                                <a href="/blog/category/<?= htmlspecialchars($cat['slug']) ?>" 
+                                <a href="<?= url('/blog/category/' . htmlspecialchars($cat['slug'])) ?>" 
                                    class="text-decoration-none <?= $cat['id'] == $category['id'] ? 'fw-bold' : '' ?>">
                                     <?= htmlspecialchars($cat['name']) ?>
                                 </a>
@@ -97,7 +100,7 @@ include VIEWS_PATH . '/layouts/header.php';
                         <ul class="list-unstyled mb-0">
                             <?php foreach ($recentPosts as $recent): ?>
                                 <li class="mb-3 pb-3 border-bottom">
-                                    <a href="/blog/<?= htmlspecialchars($recent['slug']) ?>" 
+                                    <a href="<?= url('/blog/' . htmlspecialchars($recent['slug'])) ?>" 
                                        class="text-decoration-none text-dark">
                                         <?= htmlspecialchars($recent['title']) ?>
                                     </a>

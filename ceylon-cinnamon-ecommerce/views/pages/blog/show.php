@@ -13,8 +13,8 @@ include VIEWS_PATH . '/layouts/header.php';
             <div class="col-lg-8">
                 <!-- Post Header -->
                 <header class="mb-4">
-                    <?php if ($post['category_name']): ?>
-                        <a href="/blog/category/<?= htmlspecialchars($post['category_slug']) ?>" 
+                    <?php if (!empty($post['category_name'])): ?>
+                        <a href="<?= url('/blog/category/' . htmlspecialchars($post['category_slug'])) ?>" 
                            class="badge bg-primary text-decoration-none mb-2">
                             <?= htmlspecialchars($post['category_name']) ?>
                         </a>
@@ -23,20 +23,23 @@ include VIEWS_PATH . '/layouts/header.php';
                     <h1 class="mb-3"><?= htmlspecialchars($post['title']) ?></h1>
                     
                     <div class="text-muted mb-4">
-                        <span>By <?= htmlspecialchars($post['author_name']) ?></span>
+                        <span>By <?= htmlspecialchars($post['author_name'] ?? 'Admin') ?></span>
                         <span class="mx-2">•</span>
                         <span><?= date('F j, Y', strtotime($post['published_at'] ?? $post['created_at'])) ?></span>
                     </div>
                 </header>
 
                 <!-- Featured Image -->
-                <?php if ($post['featured_image']): ?>
-                    <figure class="mb-4">
-                        <img src="<?= htmlspecialchars($post['featured_image']) ?>" 
-                             class="img-fluid rounded shadow-sm" 
-                             alt="<?= htmlspecialchars($post['title']) ?>">
-                    </figure>
-                <?php endif; ?>
+                <figure class="mb-4">
+                    <?php 
+                    $blogImage = !empty($post['featured_image']) && file_exists(PUBLIC_PATH . '/' . $post['featured_image']) 
+                        ? url('/' . $post['featured_image']) 
+                        : 'https://placehold.co/800x400/FFF8DC/8B4513?text=' . urlencode($post['title']);
+                    ?>
+                    <img src="<?= $blogImage ?>" 
+                         class="img-fluid rounded shadow-sm" 
+                         alt="<?= htmlspecialchars($post['title']) ?>">
+                </figure>
 
                 <!-- Post Content -->
                 <div class="post-content mb-5">
@@ -74,14 +77,17 @@ include VIEWS_PATH . '/layouts/header.php';
                             <?php foreach ($relatedPosts as $related): ?>
                                 <div class="col-md-4 mb-3">
                                     <div class="card h-100 border-0 shadow-sm">
-                                        <?php if ($related['featured_image']): ?>
-                                            <img src="<?= htmlspecialchars($related['featured_image']) ?>" 
-                                                 class="card-img-top" alt="<?= htmlspecialchars($related['title']) ?>"
-                                                 style="height: 120px; object-fit: cover;">
-                                        <?php endif; ?>
+                                        <?php 
+                                        $relatedImage = !empty($related['featured_image']) && file_exists(PUBLIC_PATH . '/' . $related['featured_image']) 
+                                            ? url('/' . $related['featured_image']) 
+                                            : 'https://placehold.co/400x120/FFF8DC/8B4513?text=' . urlencode($related['title']);
+                                        ?>
+                                        <img src="<?= $relatedImage ?>" 
+                                             class="card-img-top" alt="<?= htmlspecialchars($related['title']) ?>"
+                                             style="height: 120px; object-fit: cover;">
                                         <div class="card-body">
                                             <h6 class="card-title">
-                                                <a href="/blog/<?= htmlspecialchars($related['slug']) ?>" 
+                                                <a href="<?= url('/blog/' . htmlspecialchars($related['slug'])) ?>" 
                                                    class="text-decoration-none text-dark">
                                                     <?= htmlspecialchars($related['title']) ?>
                                                 </a>
@@ -96,7 +102,7 @@ include VIEWS_PATH . '/layouts/header.php';
 
                 <!-- Navigation -->
                 <nav class="d-flex justify-content-between">
-                    <a href="/blog" class="btn btn-outline-secondary">
+                    <a href="<?= url('/blog') ?>" class="btn btn-outline-secondary">
                         <i class="bi bi-arrow-left"></i> Back to Blog
                     </a>
                 </nav>
@@ -116,7 +122,7 @@ include VIEWS_PATH . '/layouts/header.php';
                             <ul class="list-unstyled mb-0">
                                 <?php foreach ($categories as $category): ?>
                                     <li class="mb-2">
-                                        <a href="/blog/category/<?= htmlspecialchars($category['slug']) ?>" 
+                                        <a href="<?= url('/blog/category/' . htmlspecialchars($category['slug'])) ?>" 
                                            class="text-decoration-none">
                                             <?= htmlspecialchars($category['name']) ?>
                                         </a>
@@ -139,7 +145,7 @@ include VIEWS_PATH . '/layouts/header.php';
                             <ul class="list-unstyled mb-0">
                                 <?php foreach ($recentPosts as $recent): ?>
                                     <li class="mb-3 pb-3 border-bottom">
-                                        <a href="/blog/<?= htmlspecialchars($recent['slug']) ?>" 
+                                        <a href="<?= url('/blog/' . htmlspecialchars($recent['slug'])) ?>" 
                                            class="text-decoration-none text-dark">
                                             <?= htmlspecialchars($recent['title']) ?>
                                         </a>

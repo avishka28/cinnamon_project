@@ -337,4 +337,33 @@ class User extends Model
         
         return $stmt->fetchAll();
     }
+
+    /**
+     * Get user's saved addresses from past orders
+     * 
+     * @param int $userId User ID
+     * @return array List of unique addresses from orders
+     */
+    public function getAddresses(int $userId): array
+    {
+        // Get unique shipping addresses from user's orders
+        $sql = "SELECT DISTINCT 
+                    shipping_address as address,
+                    first_name,
+                    last_name,
+                    phone,
+                    'shipping' as type
+                FROM orders 
+                WHERE user_id = :user_id 
+                AND shipping_address IS NOT NULL 
+                AND shipping_address != ''
+                ORDER BY created_at DESC
+                LIMIT 5";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindValue(':user_id', $userId, PDO::PARAM_INT);
+        $stmt->execute();
+        
+        return $stmt->fetchAll();
+    }
 }

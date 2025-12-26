@@ -21,12 +21,12 @@ $isWholesale = $isWholesale ?? false;
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item"><a href="/products">Products</a></li>
+            <li class="breadcrumb-item"><a href="<?= url('/') ?>">Home</a></li>
+            <li class="breadcrumb-item"><a href="<?= url('/products') ?>">Products</a></li>
             <?php if (!empty($breadcrumb)): ?>
                 <?php foreach ($breadcrumb as $crumb): ?>
                     <li class="breadcrumb-item">
-                        <a href="/category/<?= htmlspecialchars($crumb['slug']) ?>">
+                        <a href="<?= url('/category/' . htmlspecialchars($crumb['slug'])) ?>">
                             <?= htmlspecialchars($crumb['name']) ?>
                         </a>
                     </li>
@@ -148,7 +148,7 @@ $isWholesale = $isWholesale ?? false;
 
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary btn-sm">Apply Filters</button>
-                            <a href="/products" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
+                            <a href="<?= url('/products') ?>" class="btn btn-outline-secondary btn-sm">Clear Filters</a>
                         </div>
                     </form>
                 </div>
@@ -189,13 +189,33 @@ $isWholesale = $isWholesale ?? false;
                         <div class="col">
                             <div class="card h-100 product-card">
                                 <!-- Product Image with Lazy Loading -->
-                                <a href="/products/<?= htmlspecialchars($product['slug']) ?>">
-                                    <img src="/uploads/products/<?= htmlspecialchars($product['slug']) ?>.jpg" 
+                                <a href="<?= url('/products/' . htmlspecialchars($product['slug'])) ?>">
+                                    <?php 
+                                    // Get product image URL
+                                    $imageUrl = null;
+                                    if (!empty($product['image_url'])) {
+                                        $imageUrl = $product['image_url'];
+                                    } elseif (!empty($product['primary_image'])) {
+                                        $imageUrl = $product['primary_image'];
+                                    }
+                                    
+                                    // Check if it's a relative path and prepend base URL
+                                    if ($imageUrl && !preg_match('/^https?:\/\//', $imageUrl)) {
+                                        $imageUrl = url($imageUrl);
+                                    }
+                                    
+                                    // Fallback to placeholder
+                                    if (!$imageUrl) {
+                                        $imageUrl = 'https://placehold.co/300x200/FFF8DC/8B4513?text=' . urlencode($product['name']);
+                                    }
+                                    ?>
+                                    <img src="<?= htmlspecialchars($imageUrl) ?>" 
                                          class="card-img-top" 
                                          alt="<?= htmlspecialchars($product['name']) ?>"
-                                         onerror="this.src='/assets/images/placeholder.jpg'"
                                          loading="<?= $index < 6 ? 'eager' : 'lazy' ?>"
-                                         decoding="async">
+                                         decoding="async"
+                                         style="height: 200px; object-fit: cover;"
+                                         onerror="this.src='https://placehold.co/300x200/FFF8DC/8B4513?text=Cinnamon'">
                                 </a>
                                 
                                 <!-- Badges -->
@@ -219,7 +239,7 @@ $isWholesale = $isWholesale ?? false;
                                         <?= htmlspecialchars($product['category_name'] ?? '') ?>
                                     </p>
                                     <h5 class="card-title">
-                                        <a href="/products/<?= htmlspecialchars($product['slug']) ?>" class="text-decoration-none text-dark">
+                                        <a href="<?= url('/products/' . htmlspecialchars($product['slug'])) ?>" class="text-decoration-none text-dark">
                                             <?= htmlspecialchars($product['name']) ?>
                                         </a>
                                     </h5>

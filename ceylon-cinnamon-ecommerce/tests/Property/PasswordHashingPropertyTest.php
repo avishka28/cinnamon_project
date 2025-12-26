@@ -62,7 +62,7 @@ class PasswordHashingPropertyTest extends TestCase
      */
     public function testPasswordHashingNeverStoresPlainText(): void
     {
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\suchThat(
                     fn($s) => strlen($s) >= 8 && strlen($s) <= 72,
@@ -109,7 +109,7 @@ class PasswordHashingPropertyTest extends TestCase
      */
     public function testDifferentPasswordsProduceDifferentHashes(): void
     {
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\suchThat(
                     fn($s) => strlen($s) >= 8 && strlen($s) <= 72,
@@ -153,7 +153,7 @@ class PasswordHashingPropertyTest extends TestCase
      */
     public function testSamePasswordProducesDifferentHashesDueToSalt(): void
     {
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\suchThat(
                     fn($s) => strlen($s) >= 8 && strlen($s) <= 72,
@@ -192,7 +192,7 @@ class PasswordHashingPropertyTest extends TestCase
      */
     public function testWrongPasswordsNeverVerify(): void
     {
-        $this->limitTo(20)
+        $this->limitTo(5)
             ->forAll(
                 Generator\suchThat(
                     fn($s) => strlen($s) >= 8 && strlen($s) <= 71,

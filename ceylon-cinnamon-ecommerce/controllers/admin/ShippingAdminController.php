@@ -97,8 +97,9 @@ class ShippingAdminController extends Controller
     /**
      * Show edit zone form
      */
-    public function editZone(int $id): void
+    public function editZone($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
         
         $zone = $this->zoneModel->find($id);
@@ -123,8 +124,9 @@ class ShippingAdminController extends Controller
     /**
      * Update shipping zone
      */
-    public function updateZone(int $id): void
+    public function updateZone($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/shipping/zones/' . $id . '/edit');
             return;
@@ -156,8 +158,9 @@ class ShippingAdminController extends Controller
     /**
      * Delete shipping zone
      */
-    public function destroyZone(int $id): void
+    public function destroyZone($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
 
         if (!$this->sessionManager->validateCsrfToken($this->input('csrf_token', ''))) {
@@ -186,8 +189,9 @@ class ShippingAdminController extends Controller
     /**
      * Show create method form
      */
-    public function createMethod(int $zoneId): void
+    public function createMethod($zoneId): void
     {
+        $zoneId = (int) $zoneId;
         $this->sessionManager->start();
         
         $zone = $this->zoneModel->find($zoneId);
@@ -208,8 +212,9 @@ class ShippingAdminController extends Controller
     /**
      * Store new shipping method
      */
-    public function storeMethod(int $zoneId): void
+    public function storeMethod($zoneId): void
     {
+        $zoneId = (int) $zoneId;
         if (!$this->isPost()) {
             $this->redirect('/admin/shipping/zones/' . $zoneId . '/methods/create');
             return;
@@ -240,8 +245,9 @@ class ShippingAdminController extends Controller
     /**
      * Show edit method form
      */
-    public function editMethod(int $id): void
+    public function editMethod($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
         
         $method = $this->methodModel->getWithBrackets($id);
@@ -265,8 +271,9 @@ class ShippingAdminController extends Controller
     /**
      * Update shipping method
      */
-    public function updateMethod(int $id): void
+    public function updateMethod($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/shipping/methods/' . $id . '/edit');
             return;
@@ -306,8 +313,9 @@ class ShippingAdminController extends Controller
     /**
      * Delete shipping method
      */
-    public function destroyMethod(int $id): void
+    public function destroyMethod($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
 
         if (!$this->sessionManager->validateCsrfToken($this->input('csrf_token', ''))) {
@@ -390,5 +398,21 @@ class ShippingAdminController extends Controller
     {
         $this->sessionManager->flash('error', $message);
         $this->redirect($redirect);
+    }
+
+    /**
+     * Render admin view with layout
+     */
+    protected function adminView(string $view, array $data = []): void
+    {
+        extract($data);
+        
+        $viewFile = VIEWS_PATH . '/admin/' . $view . '.php';
+        
+        if (!file_exists($viewFile)) {
+            throw new RuntimeException("Admin view '{$view}' not found.");
+        }
+
+        include $viewFile;
     }
 }

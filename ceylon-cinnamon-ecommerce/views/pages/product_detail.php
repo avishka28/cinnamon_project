@@ -23,12 +23,12 @@ $isWholesale = $isWholesale ?? false;
     <!-- Breadcrumb -->
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="/">Home</a></li>
-            <li class="breadcrumb-item"><a href="/products">Products</a></li>
+            <li class="breadcrumb-item"><a href="<?= url('/') ?>">Home</a></li>
+            <li class="breadcrumb-item"><a href="<?= url('/products') ?>">Products</a></li>
             <?php if (!empty($breadcrumb)): ?>
                 <?php foreach ($breadcrumb as $crumb): ?>
                     <li class="breadcrumb-item">
-                        <a href="/category/<?= htmlspecialchars($crumb['slug']) ?>">
+                        <a href="<?= url('/category/' . htmlspecialchars($crumb['slug'])) ?>">
                             <?= htmlspecialchars($crumb['name']) ?>
                         </a>
                     </li>
@@ -46,14 +46,34 @@ $isWholesale = $isWholesale ?? false;
                 <div class="main-image mb-3">
                     <?php 
                     $primaryImage = !empty($product['images']) ? $product['images'][0] : null;
-                    $imageSrc = $primaryImage ? '/uploads/products/' . $primaryImage['image_url'] : '/assets/images/placeholder.jpg';
+                    $imageSrc = null;
+                    
+                    if ($primaryImage && !empty($primaryImage['image_url'])) {
+                        $imageUrl = $primaryImage['image_url'];
+                        // Check if it's a relative path
+                        if (!preg_match('/^https?:\/\//', $imageUrl)) {
+                            // Check if file exists (handle both with and without leading slash)
+                            $cleanPath = ltrim($imageUrl, '/');
+                            if (file_exists(PUBLIC_PATH . '/' . $cleanPath)) {
+                                $imageSrc = url('/' . $cleanPath);
+                            }
+                        } else {
+                            $imageSrc = $imageUrl;
+                        }
+                    }
+                    
+                    // Fallback to placeholder
+                    if (!$imageSrc) {
+                        $imageSrc = 'https://placehold.co/600x600/FFF8DC/8B4513?text=' . urlencode($product['name']);
+                    }
                     ?>
                     <img src="<?= htmlspecialchars($imageSrc) ?>" 
                          class="img-fluid rounded" 
                          alt="<?= htmlspecialchars($product['name']) ?>"
                          id="main-product-image"
                          loading="eager"
-                         decoding="async">
+                         decoding="async"
+                         onerror="this.src='https://placehold.co/600x600/FFF8DC/8B4513?text=Cinnamon'">
                 </div>
                 
                 <!-- Thumbnail Gallery with Lazy Loading -->
@@ -61,13 +81,32 @@ $isWholesale = $isWholesale ?? false;
                     <div class="row g-2">
                         <?php foreach ($product['images'] as $index => $image): ?>
                             <div class="col-3">
-                                <img src="/uploads/products/<?= htmlspecialchars($image['image_url']) ?>" 
+                                <?php 
+                                $thumbSrc = null;
+                                if (!empty($image['image_url'])) {
+                                    $imageUrl = $image['image_url'];
+                                    if (!preg_match('/^https?:\/\//', $imageUrl)) {
+                                        $cleanPath = ltrim($imageUrl, '/');
+                                        if (file_exists(PUBLIC_PATH . '/' . $cleanPath)) {
+                                            $thumbSrc = url('/' . $cleanPath);
+                                        }
+                                    } else {
+                                        $thumbSrc = $imageUrl;
+                                    }
+                                }
+                                
+                                if (!$thumbSrc) {
+                                    $thumbSrc = 'https://placehold.co/150x150/FFF8DC/8B4513?text=' . urlencode($image['alt_text'] ?? $product['name']);
+                                }
+                                ?>
+                                <img src="<?= htmlspecialchars($thumbSrc) ?>" 
                                      class="img-fluid rounded thumbnail-image" 
                                      alt="<?= htmlspecialchars($image['alt_text'] ?? $product['name']) ?>"
                                      onclick="document.getElementById('main-product-image').src = this.src"
                                      style="cursor: pointer;"
                                      loading="<?= $index < 4 ? 'eager' : 'lazy' ?>"
-                                     decoding="async">
+                                     decoding="async"
+                                     onerror="this.src='https://placehold.co/150x150/FFF8DC/8B4513?text=Cinnamon'">
                             </div>
                         <?php endforeach; ?>
                     </div>
@@ -218,6 +257,7 @@ $isWholesale = $isWholesale ?? false;
             <!-- Add to Cart -->
             <?php if ($product['stock_quantity'] > 0): ?>
                 <form class="mb-4" id="add-to-cart-form">
+                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token ?? '') ?>">
                     <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
                     <div class="row g-3 align-items-center">
                         <div class="col-auto">
@@ -233,7 +273,7 @@ $isWholesale = $isWholesale ?? false;
                                    value="<?= $minQty ?>" min="<?= $minQty ?>" max="<?= $product['stock_quantity'] ?>" style="width: 100px;">
                         </div>
                         <div class="col-auto">
-                            <button type="submit" class="btn btn-primary btn-lg">
+                            <button type="submit" class="btn btn-primary btn-lg" id="add-to-cart-btn">
                                 <i class="bi bi-cart-plus me-2"></i>Add to Cart
                             </button>
                         </div>
@@ -279,7 +319,7 @@ $isWholesale = $isWholesale ?? false;
                             <tr>
                                 <th scope="row">Category</th>
                                 <td>
-                                    <a href="/category/<?= htmlspecialchars($product['category_slug']) ?>">
+                                    <a href="<?= url('/products?category=' . htmlspecialchars($product['category_slug'])) ?>">
                                         <?= htmlspecialchars($product['category_name']) ?>
                                     </a>
                                 </td>
@@ -317,9 +357,18 @@ $isWholesale = $isWholesale ?? false;
             <div class="tab-content p-4 border border-top-0 rounded-bottom" id="productTabsContent">
                 <!-- Description Tab -->
                 <div class="tab-pane fade show active" id="description" role="tabpanel">
-                    <?php if ($product['description']): ?>
+                    <?php if (!empty($product['description'])): ?>
                         <div class="product-description">
-                            <?= nl2br(htmlspecialchars($product['description'])) ?>
+                            <?php
+                            // Check if description contains HTML tags
+                            if ($product['description'] !== strip_tags($product['description'])) {
+                                // Contains HTML - render it (sanitized)
+                                echo $product['description'];
+                            } else {
+                                // Plain text - convert newlines to <br>
+                                echo nl2br(htmlspecialchars($product['description']));
+                            }
+                            ?>
                         </div>
                     <?php else: ?>
                         <p class="text-muted">No detailed description available.</p>
@@ -370,21 +419,38 @@ $isWholesale = $isWholesale ?? false;
                     <?php foreach ($relatedProducts as $related): ?>
                         <div class="col">
                             <div class="card h-100 product-card">
-                                <a href="/products/<?= htmlspecialchars($related['slug']) ?>">
-                                    <img src="/uploads/products/<?= htmlspecialchars($related['slug']) ?>.jpg" 
+                                <a href="<?= url('/products/' . htmlspecialchars($related['slug'])) ?>">
+                                    <?php 
+                                    // Get related product image URL
+                                    $relatedImage = null;
+                                    if (!empty($related['image_url'])) {
+                                        $imageUrl = $related['image_url'];
+                                        if (!preg_match('/^https?:\/\//', $imageUrl)) {
+                                            $relatedImage = url($imageUrl);
+                                        } else {
+                                            $relatedImage = $imageUrl;
+                                        }
+                                    }
+                                    
+                                    if (!$relatedImage) {
+                                        $relatedImage = 'https://placehold.co/300x300/FFF8DC/8B4513?text=' . urlencode($related['name']);
+                                    }
+                                    ?>
+                                    <img src="<?= htmlspecialchars($relatedImage) ?>" 
                                          class="card-img-top" 
                                          alt="<?= htmlspecialchars($related['name']) ?>"
-                                         onerror="this.src='/assets/images/placeholder.jpg'">
+                                         style="height: 200px; object-fit: cover;"
+                                         onerror="this.src='https://placehold.co/300x300/FFF8DC/8B4513?text=Cinnamon'">
                                 </a>
                                 <div class="card-body">
                                     <h6 class="card-title">
-                                        <a href="/products/<?= htmlspecialchars($related['slug']) ?>" 
+                                        <a href="<?= url('/products/' . htmlspecialchars($related['slug'])) ?>" 
                                            class="text-decoration-none text-dark">
                                             <?= htmlspecialchars($related['name']) ?>
                                         </a>
                                     </h6>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <?php if ($related['sale_price'] && $related['sale_price'] < $related['price']): ?>
+                                        <?php if (!empty($related['sale_price']) && $related['sale_price'] < $related['price']): ?>
                                             <span class="text-danger fw-bold">
                                                 $<?= number_format($related['sale_price'], 2) ?>
                                             </span>
@@ -405,30 +471,92 @@ $isWholesale = $isWholesale ?? false;
 <script>
 document.getElementById('add-to-cart-form')?.addEventListener('submit', function(e) {
     e.preventDefault();
+    
+    const btn = document.getElementById('add-to-cart-btn');
+    if (!btn) return;
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i>Adding...';
+    btn.disabled = true;
+    
     const formData = new FormData(this);
     
-    fetch('/api/cart/add', {
+    fetch('<?= url('/cart/add') ?>', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
     })
-    .then(response => response.json())
+    .then(response => {
+        // Clone the response so we can read it twice if needed
+        return response.text().then(text => {
+            try {
+                return JSON.parse(text);
+            } catch (e) {
+                console.error('Invalid JSON response:', text);
+                throw new Error('Invalid server response');
+            }
+        });
+    })
     .then(data => {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        
         if (data.success) {
-            alert('Product added to cart!');
-            // Update cart count in header if exists
-            const cartCount = document.getElementById('cart-count');
-            if (cartCount) {
-                cartCount.textContent = data.cart_count;
+            // Show success message
+            showToast('Product added to cart!', 'success');
+            // Update cart count in header (both mobile and desktop)
+            if (data.cart) {
+                const count = data.cart.total_quantity || data.cart.item_count || 0;
+                const mobileCartCount = document.getElementById('mobile-cart-count');
+                const desktopCartCount = document.getElementById('desktop-cart-count');
+                if (mobileCartCount) mobileCartCount.textContent = count;
+                if (desktopCartCount) desktopCartCount.textContent = count;
             }
         } else {
-            alert(data.error || 'Failed to add product to cart');
+            showToast(data.error || 'Failed to add product to cart', 'error');
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        console.error('Fetch error:', error);
+        // Only show error if we haven't already shown success
+        // Check if cart count was updated (indicates success)
+        const mobileCartCount = document.getElementById('mobile-cart-count');
+        if (mobileCartCount && mobileCartCount.textContent !== '0') {
+            // Cart was updated, likely success - don't show error
+            return;
+        }
+        showToast('An error occurred. Please try again.', 'error');
     });
 });
+
+function showToast(message, type) {
+    // Remove any existing toasts of the same type to prevent duplicates
+    document.querySelectorAll('.toast-notification').forEach(t => t.remove());
+    
+    // Create toast element
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed toast-notification`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+        <div class="d-flex align-items-center">
+            <i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            <span>${message}</span>
+            <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.remove();
+        }
+    }, 3000);
+}
 </script>
 
 <?php include VIEWS_PATH . '/layouts/footer.php'; ?>

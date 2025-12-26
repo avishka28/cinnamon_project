@@ -186,6 +186,27 @@ class Order extends Model
     }
 
     /**
+     * Find order by order number and email
+     * 
+     * @param string $orderNumber Order number
+     * @param string $email Customer email
+     * @return array|null Order data or null
+     */
+    public function findByOrderNumberAndEmail(string $orderNumber, string $email): ?array
+    {
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE order_number = :order_number AND email = :email";
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute([
+            'order_number' => $orderNumber,
+            'email' => $email
+        ]);
+        
+        return $stmt->fetch() ?: null;
+    }
+
+    /**
      * Track order by order number and email
      * Requirement 5.2: Order tracking
      * 

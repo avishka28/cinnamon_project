@@ -10,7 +10,7 @@ $old = $old ?? [];
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Create Blog Post</h1>
-        <a href="/admin/content/posts" class="btn btn-outline-secondary">
+        <a href="<?= url('/admin/content/posts') ?>" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back to Posts
         </a>
     </div>
@@ -25,7 +25,7 @@ $old = $old ?? [];
         </div>
     <?php endif; ?>
 
-    <form method="POST" action="/admin/content/posts" enctype="multipart/form-data">
+    <form method="POST" action="<?= url('/admin/content/posts') ?>" enctype="multipart/form-data">
         <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
         
         <div class="row">

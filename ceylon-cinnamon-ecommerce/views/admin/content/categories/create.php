@@ -10,7 +10,7 @@ $old = $old ?? [];
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Create Category</h1>
-        <a href="/admin/content/categories" class="btn btn-outline-secondary">
+        <a href="<?= url('/admin/content/categories') ?>" class="btn btn-outline-secondary">
             <i class="bi bi-arrow-left"></i> Back to Categories
         </a>
     </div>
@@ -29,7 +29,7 @@ $old = $old ?? [];
         <div class="col-lg-6">
             <div class="card">
                 <div class="card-body">
-                    <form method="POST" action="/admin/content/categories">
+                    <form method="POST" action="<?= url('/admin/content/categories') ?>">
                         <input type="hidden" name="csrf_token" value="<?= $csrf_token ?>">
                         
                         <div class="mb-3">

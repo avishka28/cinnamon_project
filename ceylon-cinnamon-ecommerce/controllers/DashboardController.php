@@ -79,8 +79,10 @@ class DashboardController extends Controller
      * Display order detail
      * Requirement 5.6
      */
-    public function orderDetail(int $id): void
+    public function orderDetail($id): void
     {
+        $id = (int) $id;
+        
         $userId = $_SESSION['user_id'] ?? null;
         if (!$userId) {
             redirect('/login');

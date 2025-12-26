@@ -8,7 +8,8 @@
 
 include VIEWS_PATH . '/admin/layouts/admin_header.php';
 
-$flash = $sessionManager->getFlash('success') ?? $sessionManager->getFlash('error');
+$successMsg = $sessionManager->getFlash('success');
+$errorMsg = $sessionManager->getFlash('error');
 
 // Status badge colors
 $statusColors = [
@@ -44,9 +45,16 @@ $paymentColors = [
     </div>
 </div>
 
-<?php if ($flash): ?>
-    <div class="alert alert-<?= isset($sessionManager->getFlash('error')) ? 'danger' : 'success' ?> alert-dismissible fade show">
-        <?= htmlspecialchars($flash) ?>
+<?php if ($successMsg): ?>
+    <div class="alert alert-success alert-dismissible fade show">
+        <?= htmlspecialchars($successMsg) ?>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+<?php endif; ?>
+
+<?php if ($errorMsg): ?>
+    <div class="alert alert-danger alert-dismissible fade show">
+        <?= htmlspecialchars($errorMsg) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 <?php endif; ?>

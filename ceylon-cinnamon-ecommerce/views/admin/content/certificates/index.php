@@ -4,26 +4,28 @@
  * Requirements: 8.2 - Certificate management
  */
 include VIEWS_PATH . '/admin/layouts/admin_header.php';
+$successFlash = $sessionManager->getFlash('success');
+$errorFlash = $sessionManager->getFlash('error');
 ?>
 
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1 class="h3 mb-0">Certificates</h1>
-        <a href="/admin/content/certificates/create" class="btn btn-primary">
+        <a href="<?= url('/admin/content/certificates/create') ?>" class="btn btn-primary">
             <i class="bi bi-plus-lg"></i> Add Certificate
         </a>
     </div>
 
-    <?php if ($flash = $sessionManager->getFlash('success')): ?>
+    <?php if ($successFlash): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash) ?>
+            <?= htmlspecialchars($successFlash) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
 
-    <?php if ($flash = $sessionManager->getFlash('error')): ?>
+    <?php if ($errorFlash): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($flash) ?>
+            <?= htmlspecialchars($errorFlash) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     <?php endif; ?>
@@ -60,7 +62,7 @@ include VIEWS_PATH . '/admin/layouts/admin_header.php';
                                        class="btn btn-sm btn-outline-secondary" target="_blank" title="View">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a href="/admin/content/certificates/<?= $cert['id'] ?>/edit" 
+                                    <a href="<?= url('/admin/content/certificates/' . $cert['id'] . '/edit') ?>" 
                                        class="btn btn-sm btn-outline-primary" title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
@@ -81,7 +83,7 @@ include VIEWS_PATH . '/admin/layouts/admin_header.php';
 <script>
 function deleteCertificate(id) {
     if (confirm('Are you sure you want to delete this certificate?')) {
-        fetch('/admin/content/certificates/' + id, {
+        fetch('<?= url('/admin/content/certificates/') ?>' + id, {
             method: 'DELETE',
             headers: {
                 'X-CSRF-TOKEN': '<?= $csrf_token ?>',

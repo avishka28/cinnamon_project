@@ -1,6 +1,9 @@
 # Enable URL rewriting
 RewriteEngine On
 
+# Set base path for subdirectory installation
+RewriteBase /Cinnamon/cinnamon_project/ceylon-cinnamon-ecommerce/public/
+
 # Redirect all requests to index.php
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

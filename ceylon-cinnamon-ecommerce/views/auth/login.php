@@ -21,7 +21,7 @@ include VIEWS_PATH . '/layouts/header.php';
                         </div>
                     <?php endif; ?>
 
-                    <form method="POST" action="/login" novalidate>
+                    <form method="POST" action="<?= url('/login') ?>" novalidate>
                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token, ENT_QUOTES, 'UTF-8') ?>">
                         <?php if (!empty($redirect)): ?>
                             <input type="hidden" name="redirect" value="<?= htmlspecialchars($redirect, ENT_QUOTES, 'UTF-8') ?>">
@@ -58,7 +58,7 @@ include VIEWS_PATH . '/layouts/header.php';
 
                     <p class="text-center mb-0">
                         Don't have an account? 
-                        <a href="/register">Register here</a>
+                        <a href="<?= url('/register') ?>">Register here</a>
                     </p>
                 </div>
             </div>

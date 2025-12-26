@@ -135,8 +135,9 @@ class ProductAdminController extends Controller
      * Show edit product form
      * Requirements: 6.1
      */
-    public function edit(int $id): void
+    public function edit($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
         
         $product = $this->productModel->find($id);
@@ -161,8 +162,9 @@ class ProductAdminController extends Controller
      * Update product
      * Requirements: 6.1
      */
-    public function update(int $id): void
+    public function update($id): void
     {
+        $id = (int) $id;
         if (!$this->isPost()) {
             $this->redirect('/admin/products/' . $id . '/edit');
         }
@@ -222,8 +224,9 @@ class ProductAdminController extends Controller
     /**
      * Delete product
      */
-    public function destroy(int $id): void
+    public function destroy($id): void
     {
+        $id = (int) $id;
         $this->sessionManager->start();
 
         // For AJAX requests, check header token

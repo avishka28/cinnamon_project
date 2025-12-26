@@ -36,10 +36,12 @@ abstract class Controller
         exit;
     }
 
-    protected function redirect(string $url, int $statusCode = 302): void
+    protected function redirect(string $path, int $statusCode = 302): void
     {
+        // Use url() function to generate proper URL with base path
+        $fullUrl = url($path);
         http_response_code($statusCode);
-        header("Location: {$url}");
+        header("Location: {$fullUrl}");
         exit;
     }
 
